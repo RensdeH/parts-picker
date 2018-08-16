@@ -24,6 +24,7 @@ app = QtGui.QApplication(sys.argv)
 soortWindow = QtGui.QWidget()
 productWindow = QtGui.QWidget()
 customerWindow = QtGui.QWidget()
+autoKoopWindow = QtGui.QWidget()
 
 orderlijst = QtGui.QGridLayout()
 orderDisplay = QtGui.QLabel()
@@ -37,9 +38,10 @@ Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
 
 class SoortFactuur(Enum):
-	Verkoop = 1
-	Reparatie = 2
-	Artikelen = 3
+	Inkoop = 1
+	Verkoop = 2
+	Reparatie = 3
+	Artikelen = 4
 
 def main():
 	def loadArtikels(silent=True):
@@ -65,6 +67,7 @@ def main():
 	soortWindowSetup()
 	productWindowSetup()
 	customerWindowSetup()
+	autoKoopWindowSetup()
 	n6 = dt.datetime.now()
 	print("Windows Setup:"+str((n6-n5).total_seconds()))
 	soortWindow.show()
@@ -93,7 +96,10 @@ def setWindowPosition(window):
 def soortWindowSetup():
 	def setSoort(s):
 		data['soortFactuur'] = s
-		productView()
+		if s == SoortFactuur.Inkoop or s == SoortFactuur.Verkoop:
+			autoKoopView()
+		else:
+			productView()
 
 	setWindowPosition(soortWindow)
 	totalLayout = QtGui.QHBoxLayout()
@@ -192,11 +198,37 @@ def customerWindowSetup():
 	customerWindow.setLayout(totalLayout)
 	customerWindow.setWindowTitle("MX5-factuur \'Klant kiezen\'")
 
-def makeFactuur(edit):
-	data['klant'] = dialogs.getJsonLayout(edit)
+def autoKoopWindowSetup():
+	setWindowPosition(autoKoopWindow)
+	totalLayout = QtGui.QHBoxLayout()
+
+	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
+	autoEdit = dialogs.controleerJsonLayout(data['Auto'])
+
+	klantKiezen = QtGui.QPushButton()
+	klantKiezen.setText("Klant kiezen")
+	klantKiezen.clicked.connect(lambda s, edit = autoEdit: saveAuto(edit))
+	klantKiezen.setFixedHeight(200)
+
+	rightLayout = QtGui.QVBoxLayout()
+	rightLayout.addLayout(autoEdit,4)
+	rightLayout.addWidget(klantKiezen,1)
+	totalLayout.addLayout(rightLayout)
+
+	autoKoopWindow.setLayout(totalLayout)
+	autoKoopWindow.setWindowTitle("MX5-factuur \'Auto-informatie\'")
+
+
+def saveAuto(autoEdit):
+	data['Auto'] = dialogs.getJsonLayout(autoEdit)
+	customerView()
+
+def makeFactuur(customerEdit):
+	data['klant'] = dialogs.getJsonLayout(customerEdit)
 	#if data['id'] == '':
 	#	data['klant']['id'] = data['klant']['Naam']
-	latexfact.startFactuur(data['order'],data['klant'],data['soortFactuur'])
+	print(data)
+	#latexfact.startFactuur(data['order'],data['klant'],data['soortFactuur'])
 
 #########################################################
 #----------------------Switch Views----------------------
@@ -207,6 +239,7 @@ def soortView():
 	soortWindow.show()
 
 def customerView():
+	autoKoopWindow.hide()
 	productWindow.hide()
 	rebuildOrderDisplay()
 	customerWindow.show()
@@ -215,6 +248,10 @@ def productView():
 	productWindow.show()
 	soortWindow.hide()
 	customerWindow.hide()
+
+def autoKoopView():
+	soortWindow.hide()
+	autoKoopWindow.show()
 
 def rebuildOrderDisplay():
 	s = ''

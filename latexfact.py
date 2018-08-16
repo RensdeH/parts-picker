@@ -1,5 +1,6 @@
 import subprocess
 import utils
+import datetime as dt
 #klasse om een factuur te maken
 #alle input moeten kunnen 
 #opmaak is dezelfde
@@ -27,15 +28,29 @@ def makeFactuur(order,klantinfo,bedrijfsinfo,soort):
 	openfile(pdffilename,workingDir)
 
 def makeTex(order, klantinfo, bedrijfsinfo,soort):
-	factuurNummer = getNummer(soort)
+	factuurNummer = getFactuurNummer(soort)
 	latexCode = ""
 	latexCode += makeTopText(klantinfo,bedrijfsinfo,factuurNummer)
 	latexCode += makeOrderText(order)
 	latexCode += makeBottomText(bedrijfsinfo)
 	return latexCode
 
-def getNummer(s):
-	return s.name #TODO
+def getFactuurNummer(soort):
+	S = soort.name[0:1] #TODO
+	jaar = dt.now().year
+	counter = getCounter(S)
+	nummer = S + str(jaar) + counter
+
+def getCounter(S):
+	#TODO
+	#read counter.json
+	counters = utils.readJson('Resources/counters.json')
+	c = counters[S]
+	c = c + 1
+	counters[S] = c
+	#Reset json file
+	utils.writeJson(counters)
+	return c
 
 def makeOrderText(order):
 	orderText = ''
