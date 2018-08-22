@@ -7,7 +7,7 @@ import os.path
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
-from enum import Enum
+
 
 #custom imports
 import latexfact
@@ -30,6 +30,8 @@ orderlijst = QtGui.QGridLayout()
 orderDisplay = QtGui.QLabel()
 tabs = QtGui.QTabWidget()
 
+#dataDisplay = QtGui.QLabel()
+
 tablist = []
 
 # global data -Minimize this!
@@ -37,11 +39,6 @@ data = {} #factuur data (order,klant, soort)
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
 
-class SoortFactuur(Enum):
-	Inkoop = 1
-	Verkoop = 2
-	Reparatie = 3
-	Artikelen = 4
 
 def main():
 	def loadArtikels(silent=True):
@@ -96,7 +93,7 @@ def setWindowPosition(window):
 def soortWindowSetup():
 	def setSoort(s):
 		data['soortFactuur'] = s
-		if s == SoortFactuur.Inkoop or s == SoortFactuur.Verkoop:
+		if s == utils.SoortFactuur.Inkoop or s == utils.SoortFactuur.Verkoop:
 			autoKoopView()
 		else:
 			productView()
@@ -105,7 +102,7 @@ def soortWindowSetup():
 	totalLayout = QtGui.QHBoxLayout()
 	buttonLayout = QtGui.QVBoxLayout()
 
-	for en in SoortFactuur:
+	for en in utils.SoortFactuur:
 		b1 = QtGui.QPushButton()
 		b1.setText(en.name)
 		b1.clicked.connect(lambda st, so = en: setSoort(so))
@@ -124,11 +121,20 @@ def productWindowSetup():
 	setWindowPosition(productWindow)
 
 	totalLayout = QtGui.QHBoxLayout()
-
+	leftLayout = QtGui.QVBoxLayout()
 	rightlayout = QtGui.QVBoxLayout()
 
-	totalLayout.addWidget(tabs,3)
+	totalLayout.addLayout(leftLayout,3)
+	#totalLayout.addWidget(tabs,3)
 	totalLayout.addLayout(rightlayout,1)
+
+	vorigeView = QtGui.QPushButton()
+	vorigeView.setText("<Vorige")
+	vorigeView.clicked.connect(soortView)
+	vorigeView.setFixedWidth(150)
+
+	leftLayout.addWidget(vorigeView,1)
+	leftLayout.addWidget(tabs,4)
 
 	productWindow.setWindowTitle("MX5-factuur \'Producten kiezen\'")
 	productWindow.setLayout(totalLayout)
@@ -164,14 +170,37 @@ def productWindowSetup():
 	tabs.setFocusPolicy(Qt.NoFocus)
 
 def customerWindowSetup():
+	def lastView():
+		s = data['soortFactuur']
+		if s == utils.SoortFactuur.Inkoop or s == utils.SoortFactuur.Verkoop:
+			autoKoopView()
+		else:
+			productView()
+
+	def makeFactuur(rightLayout):
+		customerEdit = rightLayout.itemAt(1)
+		data['klant'] = dialogs.getJsonLayout(customerEdit)
+		#if data['id'] == '':
+		#	data['klant']['id'] = data['klant']['Naam']
+		print(data)
+		latexfact.startFactuur(data['order'],data['klant'],data['soortFactuur'],'Test')
+
+	def kiesKlant(layout):
+		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Klanten')
+		print(fileName)
+		klantData = utils.readJson(fileName)
+		custEdit = dialogs.controleerJsonLayout(klantData)
+		layout.takeAt(1)
+		layout.insertLayout(1,custEdit)
+
 	setWindowPosition(customerWindow)
 
 	totalLayout = QtGui.QHBoxLayout()
 
 	vorigeView = QtGui.QPushButton()
-	vorigeView.setText("<Producten kiezen")
-	vorigeView.clicked.connect(productView)
-	vorigeView.setFixedHeight(150)
+	vorigeView.setText("<Vorige")
+	vorigeView.clicked.connect(lastView)
+	vorigeView.setFixedWidth(150)
 
 	orderDisplay.setAlignment(Qt.AlignTop)
 	orderDisplay.setWordWrap(True)
@@ -179,18 +208,25 @@ def customerWindowSetup():
 	leftLayout = QtGui.QVBoxLayout()
 	leftLayout.addWidget(vorigeView,1)
 	leftLayout.addWidget(orderDisplay,5)
+	rightLayout = QtGui.QVBoxLayout()
 
 	data['klant'] = utils.readJson('Resources/emptyCustomer.json')
 	customerEdit = dialogs.controleerJsonLayout(data['klant'])
 
 	factuurMaken = QtGui.QPushButton()
-	factuurMaken.setText("Factuur maken")
-	factuurMaken.clicked.connect(lambda s, edit = customerEdit: makeFactuur(edit)) #latexfact.startFactuur(order))
-	factuurMaken.setFixedHeight(200)
 
-	rightLayout = QtGui.QVBoxLayout()
+	bestaandeKlantKiezen = QtGui.QPushButton()
+	rightLayout.addWidget(bestaandeKlantKiezen,1)
 	rightLayout.addLayout(customerEdit,4)
 	rightLayout.addWidget(factuurMaken,1)
+
+	bestaandeKlantKiezen.setText("Bestaande Klant Kiezen")
+	bestaandeKlantKiezen.clicked.connect(lambda s, edit = rightLayout: kiesKlant(edit))
+	bestaandeKlantKiezen.setFixedHeight(100)
+
+	factuurMaken.setText("Factuur maken")
+	factuurMaken.clicked.connect(lambda s, edit = rightLayout: makeFactuur(edit)) #latexfact.startFactuur(order))
+	factuurMaken.setFixedHeight(200)
 
 	totalLayout.addLayout(leftLayout,1)
 	totalLayout.addLayout(rightLayout,5)
@@ -205,14 +241,21 @@ def autoKoopWindowSetup():
 	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
 	autoEdit = dialogs.controleerJsonLayout(data['Auto'])
 
+	vorigeView = QtGui.QPushButton()
+	vorigeView.setText("<Vorige")
+	vorigeView.clicked.connect(soortView)
+	vorigeView.setFixedWidth(200)
+
 	klantKiezen = QtGui.QPushButton()
 	klantKiezen.setText("Klant kiezen")
 	klantKiezen.clicked.connect(lambda s, edit = autoEdit: saveAuto(edit))
 	klantKiezen.setFixedHeight(200)
 
 	rightLayout = QtGui.QVBoxLayout()
+	rightLayout.addWidget(vorigeView,1)
 	rightLayout.addLayout(autoEdit,4)
 	rightLayout.addWidget(klantKiezen,1)
+
 	totalLayout.addLayout(rightLayout)
 
 	autoKoopWindow.setLayout(totalLayout)
@@ -223,18 +266,13 @@ def saveAuto(autoEdit):
 	data['Auto'] = dialogs.getJsonLayout(autoEdit)
 	customerView()
 
-def makeFactuur(customerEdit):
-	data['klant'] = dialogs.getJsonLayout(customerEdit)
-	#if data['id'] == '':
-	#	data['klant']['id'] = data['klant']['Naam']
-	print(data)
-	#latexfact.startFactuur(data['order'],data['klant'],data['soortFactuur'])
 
 #########################################################
 #----------------------Switch Views----------------------
 #########################################################
 
 def soortView():
+	autoKoopWindow.hide()
 	productWindow.hide()
 	soortWindow.show()
 
@@ -244,12 +282,14 @@ def customerView():
 	rebuildOrderDisplay()
 	customerWindow.show()
 
+
 def productView():
 	productWindow.show()
 	soortWindow.hide()
 	customerWindow.hide()
 
 def autoKoopView():
+	customerWindow.hide()
 	soortWindow.hide()
 	autoKoopWindow.show()
 
@@ -295,19 +335,10 @@ def searchTab():
 	newScroll = makeTab(activeCatId)
 
 	b1 = QtGui.QPushButton(newScroll)
-
-	#vorige tab functie
-	#b1.clicked.connect(lambda state, area = activeScroll, tab = activeTab, i=activePosition,name=activeCatName: sluitZoeken(area,tab,i,name))
-	#----
-
-	#
 	b1.clicked.connect(lambda state, tab = activeTab, i=activePosition,name=activeCatName,catId = activeCatId: previousTab(tab,i,name,catId))
-	#
-
 	b1.setFixedSize(100,100)
 	b1.setFocusPolicy(Qt.NoFocus)
 	b1.setStyleSheet("border: none;")
-
 	b1.setIcon(QtGui.QIcon('Resources/searchback.jpg'))
 	b1.setIconSize(QSize(100,100))
 

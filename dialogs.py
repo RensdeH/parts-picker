@@ -5,15 +5,6 @@ import utils
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
-def klantDialog():
-	#Lees alle klanten in 'Resources/Klanten'
-	#maak formlayout van elke klant
-	#ook nieuwe klant
-	#klik bevestig (vraag om op te slaan, als veranderd)
-	return ""
-
-
-
 def controleerJsonLayout(data):
 	layout = QtGui.QFormLayout()
 	for line in data.keys():
@@ -42,13 +33,9 @@ def controlJsonDialog(filename):
 	#add button to layout to confirm and save
 	dialog.exec_()
 
-
-
 def controlJsonApp(filename):
 	app = QtGui.QApplication(sys.argv)
 	w = QtGui.QWidget()
 	w.show()
 	controlJsonDialog(filename)
 	sys.exit(app.exec_())
-
-

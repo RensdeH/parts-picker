@@ -3,6 +3,12 @@
 ############################################################
 import os.path
 import json
+from enum import Enum
+class SoortFactuur(Enum):
+	Inkoop = 1
+	Verkoop = 2
+	Reparatie = 3
+	Artikelen = 4
 
 def clean(name):
 	name = name.replace("Mazda","")
@@ -24,6 +30,12 @@ def writeJson(filename,data):
 	json.dump(data,write)
 	write.close()
 
+def readfile(filename):
+	read = open(filename,'r')
+	s = read.read()
+	read.close()
+	return s
+
 #Templates voor soorten facturen
 #emptyCustomer
 #emptyAuto
@@ -32,22 +44,43 @@ def writeJson(filename,data):
 #InkoopAuto
 #VerkoopAuto
 
+def makeMockOrder(data):
+	writeJson('Resources/mockOrder.json',data)
+
+def makeMockCustomer():
+	data = {}
+	data['Naam'] = 'Vladimir Poetin'
+	data['email'] = 'vlad@poetin.rus'
+	data['Telefoon'] = '06-12345678'
+	data['Straat'] = 'Sikkelstraat 5'
+	data['Postcode'] = '1999AB'
+	data['Plaats'] = 'Moskou'
+	data['Kenteken'] = '12-RUS-9'
+	data['km-stand'] = '45682'
+	writeJson('Resources/Klanten/mockCustomer.json',data)
 
 def makeCompany():
 	data = {}
-	data['Bedrijfsnaam'] = "MX5-Winkel"
-	data['Straat'] = "Energieweg 9-11"
-	data['Plaats'] = 'Meerkerk'
-	data['Postcode'] = '4231DJ'
+	data['Straat'] = ""
+	data['Plaats'] = ''
+	data['Land'] = ''
+	data['Postcode'] = ''
 	data['Email'] = ''
-	data['Rekeningnummer'] = "NLXXRABOXXXXXXXX"
-	data['Telefoon'] = '0183-123456'
+	data['Website'] = ''
+	data['KvK'] = ''
+	data['BTW-nr.'] = ''
+	data['IBAN'] = ''
+	data['BIC'] = ''
+	#Niet nodig voor bottom.txt
+	data['Telefoon'] = ''
+	data['Bedrijfsnaam'] = ""
 	return data
 
 def makeEmptyCustomer():
 	data = {}
-	data['id'] = ''
 	data['Naam'] = ''
+	data['email'] = ''
+	data['Telefoon'] = ''
 	data['Straat'] = ''
 	data['Postcode'] = ''
 	data['Plaats'] = ''
@@ -65,6 +98,15 @@ def makeEmptyAuto():
 	data['APK'] = ''
 	data['extra info'] = ''
 	writeJson('Resources/emptyAuto.json',data)
+
+def makeCounters():
+	data = {}
+	data['R'] = 300
+	data['V'] = 200
+	data['I'] = 300
+	data['A'] = 100
+	data['year'] = 2018
+	writeJson('Resources/counters.json',data)
 
 #controlJsonApp('Resources/emptyCustomer.json')
 

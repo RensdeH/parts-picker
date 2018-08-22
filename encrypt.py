@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 import base64
+import utils
 
 EncodedPartnerToken = 'pOwEMHkILj263JJxU150TaY4WLSrZrOg/5461micp0UnbDsyCOORiXGMmJSWRuAvPf/M75sLIsfzhJaCTsCUeg=='
 EncodedMerchantToken = 'dSiUYs/Kj0EehSSIjxsyf1TrwKoFJHVLC+NIF1KCf0MhuVGGryW9YtuI7vxTyX4FesbguyDe/KllkbQ0IYlrcA=='
@@ -7,7 +8,11 @@ EncodedFromMail = 'WCFemY/IjrBxC8z2QybSmIpT/hpJcLtvNZyMsTADxl4='
 EncodedToMail = 'KPCxI6QmV0baUkuQtX9HICjwsSOkJldG2lJLkLV/RyDBXYGC+/5UJai7Tn2/hQM0ZFMW9Me6x5AzkssoXfWWpg=='
 EncodedGoogleAPI = 'KPCxI6QmV0baUkuQtX9HIFh0QM5YjEVyk5CvFQjnnFjz8l2whqRYS4rs53Zqw3omNQOurWBJFpr3Ts5vpzt+dg=='
 
-password = raw_input("Password:")
+passdict = utils.readJson('../password.json')
+if passdict == {}:
+	password = raw_input("Password:")
+else:
+	password = passdict['password']
 #Used once for generating encoded key paste above
 def makeKey(p,Key):
 	msg = Key.rjust(64)

@@ -1,0 +1,13 @@
+
+\documentclass{invoice}
+\usepackage{setspace}
+%\usepackage[yyyymmdd]{datetime}
+\usepackage{graphicx}
+\renewcommand{\arraystretch}{0.7}
+\def \tab {\hspace*{3ex}}
+\begin{document}
+\begin{center}
+\includegraphics[scale=0.7]{Horizontal-logo.jpg}
+\end{center}
+\hrule
+\leavevmode\hbox to \linewidth{%
