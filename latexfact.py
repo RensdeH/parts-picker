@@ -2,6 +2,7 @@ import subprocess
 import utils
 import datetime as dt
 import api
+import os
 import shutil
 #klasse om een factuur te maken
 #alle input moeten kunnen
@@ -11,11 +12,6 @@ import shutil
 #-Klant info
 #-producten (prijzen, aantallen, btw)
 #-omschrijving
-
-def mockorder():
-	data = api.getArtikels(aantal = 10,silent=True)
-	data2 = data[0:10]
-	utils.makeMockOrder(data2)
 
 def mockfact():
 	order = utils.readJson('Resources/mockOrder.json')[0:9]
@@ -36,15 +32,16 @@ def makeFactuur(order,klantinfo,bedrijfsinfo,soort,omschrijving):
 	workingDir = 'Invoice/'
 	filename = factuurNummer + '.tex'
 	pdffilename = factuurNummer + '.pdf'
+
 	file = open(workingDir + filename,'w')
 	latexCode = makeTex(order, klantinfo, bedrijfsinfo,factuurNummer,omschrijving)
-
 	file.write(latexCode)
 	file.close()
-	runpdflatex(filename,False,workingDir)
+	proc = runpdflatex(filename,False,workingDir)
+	proc.wait()
 	shutil.move(workingDir + filename,'Facturen/' + filename)
 	shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)
-	#move pdf + tex to folder facturen
+
 	openfile(pdffilename,'Facturen/')
 
 def makeTex(order, klant, bedrijfsinfo,factuurNummer,omschrijving):
@@ -68,7 +65,6 @@ def getCounter(S):
 	counters[S] = c
 	utils.writeJson('Resources/counters.json',counters)
 	return c
-
 
 def makeStartText():
 	startText = utils.readfile('Invoice/top.txt')
@@ -145,15 +141,18 @@ def makeBottomText(bedrijf):
 def runpdflatex(fileName,debug,workingDir):
 	print(fileName)
 	if debug:
-		proc = subprocess.Popen(['pdflatex','-interaction','nonstopmode',fileName],cwd=workingDir)
-		proc.communicate()
+		proc =  subprocess.Popen(['pdflatex','-interaction','nonstopmode',fileName],cwd=workingDir)
+		#proc.communicate()
+		return proc
 	else:
 		proc = subprocess.Popen(['pdflatex','-interaction','batchmode',fileName],cwd=workingDir)
-		proc.communicate()
+		#proc.communicate()
+		return proc
 
 def openfile(filename,workingDir):
 	proc = subprocess.Popen(['xdg-open',filename],cwd=workingDir)
-	proc.communicate()
+	#proc.communicate()
+	return proc
 
 
 #####################################################################3

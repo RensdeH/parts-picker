@@ -3,7 +3,9 @@
 ############################################################
 import os.path
 import json
+from collections import OrderedDict
 from enum import Enum
+
 class SoortFactuur(Enum):
 	Inkoop = 1
 	Verkoop = 2
@@ -21,7 +23,7 @@ def readJson(filename):
 		print("Not found:" + filename)
 		return {}
 	read = open(filename,'r')
-	data = json.load(read)
+	data = json.load(read, object_pairs_hook=OrderedDict)
 	read.close()
 	return data
 
@@ -48,7 +50,7 @@ def makeMockOrder(data):
 	writeJson('Resources/mockOrder.json',data)
 
 def makeMockCustomer():
-	data = {}
+	data = OrderedDict()
 	data['Naam'] = 'Vladimir Poetin'
 	data['email'] = 'vlad@poetin.rus'
 	data['Telefoon'] = '06-12345678'
@@ -60,7 +62,7 @@ def makeMockCustomer():
 	writeJson('Resources/Klanten/mockCustomer.json',data)
 
 def makeCompany():
-	data = {}
+	data = OrderedDict()
 	data['Straat'] = ""
 	data['Plaats'] = ''
 	data['Land'] = ''
@@ -76,8 +78,25 @@ def makeCompany():
 	data['Bedrijfsnaam'] = ""
 	return data
 
+def makeEmptyCompany():
+	data = OrderedDict()
+	data['Straat'] = ""
+	data['Plaats'] = ''
+	data['Land'] = ''
+	data['Postcode'] = ''
+	data['Email'] = ''
+	data['Website'] = ''
+	data['KvK'] = ''
+	data['BTW-nr.'] = ''
+	data['IBAN'] = ''
+	data['BIC'] = ''
+	#Niet nodig voor bottom.txt
+	data['Telefoon'] = ''
+	data['Bedrijfsnaam'] = ""
+	return writeJson('Resources/company.json',data)
+
 def makeEmptyCustomer():
-	data = {}
+	data = OrderedDict()
 	data['Naam'] = ''
 	data['email'] = ''
 	data['Telefoon'] = ''
@@ -89,7 +108,7 @@ def makeEmptyCustomer():
 	writeJson('Resources/emptyCustomer.json',data)
 
 def makeEmptyAuto():
-	data = {}
+	data = OrderedDict()
 	data['Kenteken'] = ''
 	data['Model'] = ''
 	data['Bouwjaar'] = ''
@@ -107,7 +126,3 @@ def makeCounters():
 	data['A'] = 100
 	data['year'] = 2018
 	writeJson('Resources/counters.json',data)
-
-#controlJsonApp('Resources/emptyCustomer.json')
-
-#writeJson('Resources/company.json',makeCompany())

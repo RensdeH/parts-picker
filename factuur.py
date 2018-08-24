@@ -8,7 +8,6 @@ import os.path
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
-
 #custom imports
 import latexfact
 import api
@@ -35,10 +34,9 @@ tabs = QtGui.QTabWidget()
 tablist = []
 
 # global data -Minimize this!
-data = {} #factuur data (order,klant, soort)
+data = {} #factuur data (order, auto, Uren(aantal,omschrijving),klant,soort)
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
-
 
 def main():
 	def loadArtikels(silent=True):
@@ -77,8 +75,6 @@ def main():
 
 	#debugging tool
 	#print(len(app.allWidgets()))
-
-
 
 ######################################################
 #-----------------------Setup-------------------------
@@ -182,12 +178,10 @@ def customerWindowSetup():
 		data['klant'] = dialogs.getJsonLayout(customerEdit)
 		#if data['id'] == '':
 		#	data['klant']['id'] = data['klant']['Naam']
-		print(data)
 		latexfact.startFactuur(data['order'],data['klant'],data['soortFactuur'],'Test')
 
 	def kiesKlant(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Klanten')
-		print(fileName)
 		klantData = utils.readJson(fileName)
 		custEdit = dialogs.controleerJsonLayout(klantData)
 		layout.takeAt(1)
@@ -282,7 +276,6 @@ def customerView():
 	rebuildOrderDisplay()
 	customerWindow.show()
 
-
 def productView():
 	productWindow.show()
 	soortWindow.hide()
@@ -339,7 +332,7 @@ def searchTab():
 	b1.setFixedSize(100,100)
 	b1.setFocusPolicy(Qt.NoFocus)
 	b1.setStyleSheet("border: none;")
-	b1.setIcon(QtGui.QIcon('Resources/searchback.jpg'))
+	b1.setIcon(QtGui.QIcon('Resources/searchback.png'))
 	b1.setIconSize(QSize(100,100))
 
 	l1 = QtGui.QLabel('',parent = newScroll)
@@ -464,18 +457,12 @@ def makeGrid(lijst,scroll,button):
 
 
 def makeButton(item):
-	def downloadImage(item):
+	def getImageUrl(item):
 		iurl = 'Images/' + str(item['id']) + '.jpeg'
 		if os.path.isfile(iurl):
 			return iurl
-		if 'images' in item:
-			url = item['images'][0]['urls']['full']
 		else:
-			return 'Resources/nopic.png'
-		img_data = requests.get(url).content
-		foto = open(iurl,'w')
-		foto.write(img_data)
-		return iurl
+			return 'Resources/nopic.jpg'
 
 	b1 = QtGui.QPushButton()
 	b1.clicked.connect(lambda: itemClicked(item))
@@ -483,7 +470,7 @@ def makeButton(item):
 	b1.setAutoFillBackground(True)
 	b1.setFocusPolicy(Qt.NoFocus)
 
-	foto = downloadImage(item)
+	foto = getImageUrl(item)
 	b1.setIcon(QtGui.QIcon(foto))
 	b1.setStyleSheet("border: none;")
 	b1.setIconSize(QSize(100,100))
