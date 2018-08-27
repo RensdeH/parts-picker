@@ -24,8 +24,10 @@ soortWindow = QtGui.QWidget()
 productWindow = QtGui.QWidget()
 customerWindow = QtGui.QWidget()
 autoKoopWindow = QtGui.QWidget()
+urenWindow = QtGui.QWidget()
 
 orderlijst = QtGui.QGridLayout()
+werkLayout = QtGui.QGridLayout()
 orderDisplay = QtGui.QLabel()
 tabs = QtGui.QTabWidget()
 
@@ -35,6 +37,7 @@ tablist = []
 
 # global data -Minimize this!
 data = {} #factuur data (order, auto, Uren(aantal,omschrijving),klant,soort)
+data['Werk']=[]
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
 
@@ -63,6 +66,7 @@ def main():
 	productWindowSetup()
 	customerWindowSetup()
 	autoKoopWindowSetup()
+	urenWindowSetup()
 	n6 = dt.datetime.now()
 	print("Windows Setup:"+str((n6-n5).total_seconds()))
 	soortWindow.show()
@@ -86,13 +90,87 @@ def setWindowPosition(window):
 	window.move(rect.left(),rect.top())
 	window.resize(rect.width(),rect.height())
 
+def addUren():
+	#dialog
+	data['Werk'].append(("3","test"))
+	rebuildWerkUrenWindow()
+
+def removeUren(werk):
+	data['Werk'].remove(werk)
+	rebuildWerkUrenWindow()
+
+def rebuildWerkUrenWindow():
+	for i in reversed(range(werkLayout.count())):
+		notNeeded = werkLayout.takeAt(i).widget().setParent(None)
+	rij = 0
+	#werk = (floatUren,stringOmschrijving)
+	for werk in data['Werk']:
+		countlabel = QtGui.QLabel(str(werk[0]))
+		countlabel.setFixedSize(25,40)
+
+		omschrijvingLabel = QtGui.QLabel(utils.clean(werk[1]))
+		omschrijvingLabel.setWordWrap(True)
+
+		#editButton = QtGui.QPushButton("edit")
+		#editButton.setFixedSize(40,40)
+		#editButton.clicked.connect(lambda s, orde=o: addUren(orde))
+
+		removebutton = QtGui.QPushButton("X")
+		removebutton.setFixedSize(40,40)
+		removebutton.clicked.connect(lambda s, w=werk: removeUren(w))
+
+		werkLayout.addWidget(countlabel,rij,0)
+		werkLayout.addWidget(omschrijvingLabel,rij,1)
+		#werkLayout.addWidget(editButton,rij,2)
+		werkLayout.addWidget(removebutton,rij,2)
+		rij+=1
+
+def urenWindowSetup():
+	setWindowPosition(urenWindow)
+	totalLayout = QtGui.QVBoxLayout()
+
+	addUrenb = QtGui.QPushButton()
+	addUrenb.setFixedHeight(100)
+	addUrenb.clicked.connect(addUren)
+	addUrenb.setText("Werk toevoegen")
+
+	vorigeView = QtGui.QPushButton()
+	vorigeView.setText("<Vorige")
+	vorigeView.clicked.connect(soortView)
+	vorigeView.setFixedWidth(150)
+
+	volgendeView = QtGui.QPushButton()
+	volgendeView.setText("Volgende>")
+	volgendeView.clicked.connect(productView)
+	volgendeView.setFixedWidth(150)
+
+	groupbox2 = QtGui.QGroupBox()
+
+	scroll2 = QtGui.QScrollArea()
+	scroll2.setWidget(groupbox2)
+	scroll2.setWidgetResizable(True)
+
+	orderlijst.setAlignment(Qt.AlignTop)
+	groupbox2.setLayout(werkLayout)
+
+	totalLayout.addWidget(vorigeView)
+	totalLayout.addWidget(scroll2)
+	totalLayout.addWidget(addUrenb)
+	totalLayout.addWidget(volgendeView)
+
+	werkLayout.setAlignment(Qt.AlignTop)
+	urenWindow.setLayout(totalLayout)
+	urenWindow.setWindowTitle("MX5-factuur \'Uren toevoegen\'")
+
 def soortWindowSetup():
 	def setSoort(s):
 		data['soortFactuur'] = s
-		if s == utils.SoortFactuur.Inkoop or s == utils.SoortFactuur.Verkoop:
+		if s == utils.SoortFactuur.Inkoop:
 			autoKoopView()
-		else:
+		elif s == utils.SoortFactuur.Verkoop:
 			productView()
+		else:
+			urenView()
 
 	setWindowPosition(soortWindow)
 	totalLayout = QtGui.QHBoxLayout()
@@ -269,6 +347,12 @@ def soortView():
 	autoKoopWindow.hide()
 	productWindow.hide()
 	soortWindow.show()
+
+def urenView():
+	autoKoopWindow.hide()
+	productWindow.hide()
+	soortWindow.hide()
+	urenWindow.show()
 
 def customerView():
 	autoKoopWindow.hide()

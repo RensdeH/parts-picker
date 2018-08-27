@@ -23,6 +23,9 @@ def mockfact():
 	omschrijving = 'Mock Factuur'
 	startFactuur(comp,klant,soort,omschrijving)
 
+def factuurFromData(data):
+	startFactuur(data['order'],data['klant'],data['soort'],data['omschrijving'])
+
 def startFactuur(order,klant,soort,omschrijving):
 	bedrijf = standardBedrijfInfo()
 	makeFactuur(order,klant,bedrijf,soort,omschrijving)
@@ -37,7 +40,7 @@ def makeFactuur(order,klantinfo,bedrijfsinfo,soort,omschrijving):
 	latexCode = makeTex(order, klantinfo, bedrijfsinfo,factuurNummer,omschrijving)
 	file.write(latexCode)
 	file.close()
-	proc = runpdflatex(filename,False,workingDir)
+	proc = runpdflatex(filename,True,workingDir)
 	proc.wait()
 	shutil.move(workingDir + filename,'Facturen/' + filename)
 	shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)

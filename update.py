@@ -17,6 +17,8 @@ def makeJsonFiles():
     data2 = data[0:10]
     utils.makeMockOrder(data2)
 
+#makeJsonFiles()
+
 def downloadImage(item):
     size = 100,100
     iurl = 'Images/' + str(item['id']) + '.jpeg'
@@ -39,4 +41,4 @@ def main():
     for item in data:
         downloadImage(item)
 
-main()
+#main()
