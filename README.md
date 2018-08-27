@@ -9,4 +9,6 @@ Benodigde packages
 -texlive-fonts-recommended
 -texlive-latex-recommended
 -Directory Facturen
+-run update.main()
 -run update.makeJsonFiles()
+-evt '../password.json' maken

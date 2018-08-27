@@ -24,20 +24,20 @@ def mockfact():
 	startFactuur(comp,klant,soort,omschrijving)
 
 def factuurFromData(data):
-	startFactuur(data['order'],data['klant'],data['soort'],data['omschrijving'])
+	startFactuur(data['order'],data['Werk'],data['klant'],data['soort'],data['omschrijving'])
 
-def startFactuur(order,klant,soort,omschrijving):
+def startFactuur(order,werk,klant,soort,omschrijving):
 	bedrijf = standardBedrijfInfo()
-	makeFactuur(order,klant,bedrijf,soort,omschrijving)
+	makeFactuur(order,werk,klant,bedrijf,soort,omschrijving)
 
-def makeFactuur(order,klantinfo,bedrijfsinfo,soort,omschrijving):
+def makeFactuur(order,werk,klantinfo,bedrijfsinfo,soort,omschrijving):
 	factuurNummer = getFactuurNummer(soort)
 	workingDir = 'Invoice/'
 	filename = factuurNummer + '.tex'
 	pdffilename = factuurNummer + '.pdf'
 
 	file = open(workingDir + filename,'w')
-	latexCode = makeTex(order, klantinfo, bedrijfsinfo,factuurNummer,omschrijving)
+	latexCode = makeTex(order,werk, klantinfo, bedrijfsinfo,factuurNummer,omschrijving)
 	file.write(latexCode)
 	file.close()
 	proc = runpdflatex(filename,True,workingDir)
@@ -47,11 +47,11 @@ def makeFactuur(order,klantinfo,bedrijfsinfo,soort,omschrijving):
 
 	openfile(pdffilename,'Facturen/')
 
-def makeTex(order, klant, bedrijfsinfo,factuurNummer,omschrijving):
+def makeTex(order,werk, klant, bedrijfsinfo,factuurNummer,omschrijving):
 	latexCode = ""
 	latexCode += makeStartText()
 	latexCode += makeTopText(klant,factuurNummer,omschrijving)
-	latexCode += makeOrderText(order)
+	latexCode += makeOrderText(order,werk)
 	latexCode += makeBottomText(bedrijfsinfo)
 	return latexCode
 
@@ -97,7 +97,7 @@ def makeTopText(klant,factuurnummer, omschrijving):
 	\renewcommand{\arraystretch}{0.9}"""
 	return topText
 
-def makeOrderText(order):
+def makeOrderText(order,werk):
 	btwhoog = 0
 	uitbtwhoog = 0
 	uitbtwgeen = 0
@@ -106,7 +106,7 @@ def makeOrderText(order):
 	orderText += r"""
 
 	\begin{invoiceTable}
-	\feetype{Gebruikte Producten}"""
+	\feetype{Producten}"""
 	for o in order:
 		orderText += '\unitrow{'+o['item']['name'][0:30]+'}{'+str(o['Aantal'])+'}{'+o['item']['price']['default']+'}{}\n'
 		if float(o['item']['tax']) == 21:
@@ -115,9 +115,10 @@ def makeOrderText(order):
 			uitbtwgeen += float(o['item']['price']['default']) * o['Aantal']
 	orderText += r"""
 
-	\feetype{Gewerkte Uren}
-	\hourrow{Werkplaatstarief Programma ontwikkelen met behulp van python en latex}{10}{62.5}
-	\hourrow{Werkplaatstarief Factuur ontwerpen}{2}{62.5}"""
+	\feetype{Gewerkte Uren}"""
+	for w in werk:
+		orderText += r"""\hourrow{Werkplaatstarief """+w[1]+r"""}{"""+str(w[0])+r"""}{62.5}"""
+		uitbtwhoog += float(62.5) * w[0]
 
 	btwhoog = (uitbtwhoog/1.21)*0.21
 	orderText+=r"""
@@ -125,6 +126,7 @@ def makeOrderText(order):
 	\end{invoiceTable}
 	"""
 	return orderText
+
 
 def makeBottomText(bedrijf):
 	bottomText = r"""

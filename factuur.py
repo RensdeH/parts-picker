@@ -91,12 +91,22 @@ def setWindowPosition(window):
 	window.resize(rect.width(),rect.height())
 
 def addUren():
-	#dialog
-	data['Werk'].append(("3","test"))
+	werk = dialogs.urenDialog()
+	if werk == None:
+		return
+	data['Werk'].append(werk)
 	rebuildWerkUrenWindow()
 
 def removeUren(werk):
 	data['Werk'].remove(werk)
+	rebuildWerkUrenWindow()
+
+def editUren(werk):
+	werkd = dialogs.urenDialog()
+	if werkd == None:
+		return
+	data['Werk'].remove(werk)
+	data['Werk'].append(werkd)
 	rebuildWerkUrenWindow()
 
 def rebuildWerkUrenWindow():
@@ -111,9 +121,9 @@ def rebuildWerkUrenWindow():
 		omschrijvingLabel = QtGui.QLabel(utils.clean(werk[1]))
 		omschrijvingLabel.setWordWrap(True)
 
-		#editButton = QtGui.QPushButton("edit")
-		#editButton.setFixedSize(40,40)
-		#editButton.clicked.connect(lambda s, orde=o: addUren(orde))
+		editButton = QtGui.QPushButton("edit")
+		editButton.setFixedSize(40,40)
+		editButton.clicked.connect(lambda s, w=werk: editUren(w))
 
 		removebutton = QtGui.QPushButton("X")
 		removebutton.setFixedSize(40,40)
@@ -121,13 +131,14 @@ def rebuildWerkUrenWindow():
 
 		werkLayout.addWidget(countlabel,rij,0)
 		werkLayout.addWidget(omschrijvingLabel,rij,1)
-		#werkLayout.addWidget(editButton,rij,2)
-		werkLayout.addWidget(removebutton,rij,2)
+		werkLayout.addWidget(editButton,rij,2)
+		werkLayout.addWidget(removebutton,rij,3)
 		rij+=1
 
 def urenWindowSetup():
 	setWindowPosition(urenWindow)
-	totalLayout = QtGui.QVBoxLayout()
+	totalLayout = QtGui.QHBoxLayout()
+	leftLayout = QtGui.QVBoxLayout()
 
 	addUrenb = QtGui.QPushButton()
 	addUrenb.setFixedHeight(100)
@@ -153,10 +164,14 @@ def urenWindowSetup():
 	orderlijst.setAlignment(Qt.AlignTop)
 	groupbox2.setLayout(werkLayout)
 
-	totalLayout.addWidget(vorigeView)
-	totalLayout.addWidget(scroll2)
-	totalLayout.addWidget(addUrenb)
-	totalLayout.addWidget(volgendeView)
+	totalLayout.addLayout(leftLayout)
+	totalLayout.addStretch()
+	totalLayout.addStretch()
+
+	leftLayout.addWidget(vorigeView)
+	leftLayout.addWidget(scroll2)
+	leftLayout.addWidget(addUrenb)
+	leftLayout.addWidget(volgendeView)
 
 	werkLayout.setAlignment(Qt.AlignTop)
 	urenWindow.setLayout(totalLayout)
@@ -256,13 +271,15 @@ def customerWindowSetup():
 		data['klant'] = dialogs.getJsonLayout(customerEdit)
 		#if data['id'] == '':
 		#	data['klant']['id'] = data['klant']['Naam']
-		latexfact.startFactuur(data['order'],data['klant'],data['soortFactuur'],'Test')
+		latexfact.startFactuur(data['order'],data['Werk'],data['klant'],data['soortFactuur'],'Test')
 
 	def kiesKlant(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Klanten')
 		klantData = utils.readJson(fileName)
 		custEdit = dialogs.controleerJsonLayout(klantData)
-		layout.takeAt(1)
+		l = layout.takeAt(1)
+		for i in reversed(range(l.count())):
+			notNeeded = l.takeAt(i).widget().setParent(None)
 		layout.insertLayout(1,custEdit)
 
 	setWindowPosition(customerWindow)
@@ -347,6 +364,7 @@ def soortView():
 	autoKoopWindow.hide()
 	productWindow.hide()
 	soortWindow.show()
+	urenWindow.hide()
 
 def urenView():
 	autoKoopWindow.hide()
@@ -357,6 +375,7 @@ def urenView():
 def customerView():
 	autoKoopWindow.hide()
 	productWindow.hide()
+	urenWindow.hide()
 	rebuildOrderDisplay()
 	customerWindow.show()
 
@@ -364,6 +383,7 @@ def productView():
 	productWindow.show()
 	soortWindow.hide()
 	customerWindow.hide()
+	urenWindow.hide()
 
 def autoKoopView():
 	customerWindow.hide()
