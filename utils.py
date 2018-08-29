@@ -48,6 +48,7 @@ def readfile(filename):
 
 def makeMockOrder(data):
 	writeJson('Resources/mockOrder.json',data)
+	return data
 
 def makeMockCustomer():
 	data = OrderedDict()
@@ -60,6 +61,7 @@ def makeMockCustomer():
 	data['Kenteken'] = '12-RUS-9'
 	data['km-stand'] = '45682'
 	writeJson('Resources/Klanten/mockCustomer.json',data)
+	return data
 
 def makeCompany():
 	data = OrderedDict()
@@ -93,7 +95,8 @@ def makeEmptyCompany():
 	#Niet nodig voor bottom.txt
 	data['Telefoon'] = ''
 	data['Bedrijfsnaam'] = ""
-	return writeJson('Resources/company.json',data)
+	writeJson('Resources/company.json',data)
+	return data
 
 def makeEmptyCustomer():
 	data = OrderedDict()
@@ -106,6 +109,7 @@ def makeEmptyCustomer():
 	data['Kenteken'] = ''
 	data['km-stand'] = ''
 	writeJson('Resources/emptyCustomer.json',data)
+	return data
 
 def makeEmptyAuto():
 	data = OrderedDict()
@@ -116,9 +120,14 @@ def makeEmptyAuto():
 	data['Meldcode'] = ''
 	data['APK'] = ''
 	data['extra info'] = ''
+	data['Prijs'] = ''
 	writeJson('Resources/emptyAuto.json',data)
+	return data
 
 def makeCounters():
+	#TODO check if file is correct
+	if os.path.isfile(filename):
+		return
 	data = {}
 	data['R'] = 300
 	data['V'] = 200
@@ -126,3 +135,4 @@ def makeCounters():
 	data['A'] = 100
 	data['year'] = 2018
 	writeJson('Resources/counters.json',data)
+	return data

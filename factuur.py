@@ -76,7 +76,6 @@ def main():
 	print("Show Window:"+str((n7-n6).total_seconds()))
 	print("Total Time:"+str((n7-n1).total_seconds()))
 	sys.exit(app.exec_())
-
 	#debugging tool
 	#print(len(app.allWidgets()))
 
@@ -84,11 +83,7 @@ def main():
 #-----------------------Setup-------------------------
 ######################################################
 
-def setWindowPosition(window):
-	pdesk = QtGui.QDesktopWidget()
-	rect = pdesk.screenGeometry(pdesk.primaryScreen())
-	window.move(rect.left(),rect.top())
-	window.resize(rect.width(),rect.height())
+#-------------------Werklijst Display-----------------
 
 def addUren():
 	werk = dialogs.urenDialog()
@@ -135,8 +130,9 @@ def rebuildWerkUrenWindow():
 		werkLayout.addWidget(removebutton,rij,3)
 		rij+=1
 
+
 def urenWindowSetup():
-	setWindowPosition(urenWindow)
+	dialogs.setWindowPosition(urenWindow)
 	totalLayout = QtGui.QHBoxLayout()
 	leftLayout = QtGui.QVBoxLayout()
 
@@ -147,12 +143,12 @@ def urenWindowSetup():
 
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(soortView)
+	vorigeView.clicked.connect(lambda : changeView(soortWindow))
 	vorigeView.setFixedWidth(150)
 
 	volgendeView = QtGui.QPushButton()
 	volgendeView.setText("Volgende>")
-	volgendeView.clicked.connect(productView)
+	volgendeView.clicked.connect(lambda : changeView(productWindow))
 	volgendeView.setFixedWidth(150)
 
 	groupbox2 = QtGui.QGroupBox()
@@ -181,13 +177,13 @@ def soortWindowSetup():
 	def setSoort(s):
 		data['soortFactuur'] = s
 		if s == utils.SoortFactuur.Inkoop:
-			autoKoopView()
+			changeView(autoKoopWindow)
 		elif s == utils.SoortFactuur.Verkoop:
-			productView()
+			changeView(productWindow)
 		else:
-			urenView()
+			changeView(urenWindow)
 
-	setWindowPosition(soortWindow)
+	dialogs.setWindowPosition(soortWindow)
 	totalLayout = QtGui.QHBoxLayout()
 	buttonLayout = QtGui.QVBoxLayout()
 
@@ -207,7 +203,7 @@ def soortWindowSetup():
 	soortWindow.setLayout(totalLayout)
 
 def productWindowSetup():
-	setWindowPosition(productWindow)
+	dialogs.setWindowPosition(productWindow)
 
 	totalLayout = QtGui.QHBoxLayout()
 	leftLayout = QtGui.QVBoxLayout()
@@ -219,7 +215,7 @@ def productWindowSetup():
 
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(soortView)
+	vorigeView.clicked.connect(lambda : changeView(soortWindow))
 	vorigeView.setFixedWidth(150)
 
 	leftLayout.addWidget(vorigeView,1)
@@ -245,7 +241,7 @@ def productWindowSetup():
 	bevestig = QtGui.QPushButton()
 	bevestig.setFixedHeight(200)
 	bevestig.setText("Volgende>")
-	bevestig.clicked.connect(lambda: customerView())
+	bevestig.clicked.connect(lambda: changeView(customerWindow))
 
 	actie = QtGui.QAction(productWindow)
 	actie.setShortcut("Ctrl+F")
@@ -262,16 +258,17 @@ def customerWindowSetup():
 	def lastView():
 		s = data['soortFactuur']
 		if s == utils.SoortFactuur.Inkoop or s == utils.SoortFactuur.Verkoop:
-			autoKoopView()
+			changeView(autoKoopWindow)
 		else:
-			productView()
+			changeView(productWindow)
 
 	def makeFactuur(rightLayout):
 		customerEdit = rightLayout.itemAt(1)
 		data['klant'] = dialogs.getJsonLayout(customerEdit)
 		#if data['id'] == '':
 		#	data['klant']['id'] = data['klant']['Naam']
-		latexfact.startFactuur(data['order'],data['Werk'],data['klant'],data['soortFactuur'],'Test')
+		#latexfact.startFactuur(data['order'],data['Werk'],data['klant'],data['soortFactuur'],'Test')
+		latexfact.startFactuur(data)
 
 	def kiesKlant(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Klanten')
@@ -282,7 +279,7 @@ def customerWindowSetup():
 			notNeeded = l.takeAt(i).widget().setParent(None)
 		layout.insertLayout(1,custEdit)
 
-	setWindowPosition(customerWindow)
+	dialogs.setWindowPosition(customerWindow)
 
 	totalLayout = QtGui.QHBoxLayout()
 
@@ -324,7 +321,7 @@ def customerWindowSetup():
 	customerWindow.setWindowTitle("MX5-factuur \'Klant kiezen\'")
 
 def autoKoopWindowSetup():
-	setWindowPosition(autoKoopWindow)
+	dialogs.setWindowPosition(autoKoopWindow)
 	totalLayout = QtGui.QHBoxLayout()
 
 	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
@@ -332,11 +329,11 @@ def autoKoopWindowSetup():
 
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(soortView)
+	vorigeView.clicked.connect(lambda : changeView(soortWindow))
 	vorigeView.setFixedWidth(200)
 
 	klantKiezen = QtGui.QPushButton()
-	klantKiezen.setText("Klant kiezen")
+	klantKiezen.setText("Opslaan")
 	klantKiezen.clicked.connect(lambda s, edit = autoEdit: saveAuto(edit))
 	klantKiezen.setFixedHeight(200)
 
@@ -353,43 +350,23 @@ def autoKoopWindowSetup():
 
 def saveAuto(autoEdit):
 	data['Auto'] = dialogs.getJsonLayout(autoEdit)
-	customerView()
+	changeView(customerWindow)
 
 
 #########################################################
 #----------------------Switch Views----------------------
 #########################################################
 
-def soortView():
-	autoKoopWindow.hide()
-	productWindow.hide()
-	soortWindow.show()
-	urenWindow.hide()
-
-def urenView():
-	autoKoopWindow.hide()
-	productWindow.hide()
+def changeView(window):
 	soortWindow.hide()
-	urenWindow.show()
-
-def customerView():
-	autoKoopWindow.hide()
 	productWindow.hide()
+	customerWindow.hide()
+	autoKoopWindow.hide()
 	urenWindow.hide()
 	rebuildOrderDisplay()
-	customerWindow.show()
+	window.show()
 
-def productView():
-	productWindow.show()
-	soortWindow.hide()
-	customerWindow.hide()
-	urenWindow.hide()
-
-def autoKoopView():
-	customerWindow.hide()
-	soortWindow.hide()
-	autoKoopWindow.show()
-
+#Tot nu toe de enige functie die informatie laat zien van andere views
 def rebuildOrderDisplay():
 	s = ''
 	for o in data['order']:
@@ -558,7 +535,6 @@ def makeGrid(lijst,scroll,button):
 ###############################################################
 #------------------------Single Button-------------------------
 ###############################################################
-
 
 def makeButton(item):
 	def getImageUrl(item):

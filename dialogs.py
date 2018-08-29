@@ -6,52 +6,60 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
 class Widget(QtGui.QDialog):
-    def __init__(self, parent=None):
-        def checker(u,o):
+	def __init__(self, parent=None):
+		def checker(u,o):
 			if str(u) == '0,0':
 				return
 			if str(o) == '':
 				return
 			self.done(1)
-        super(Widget,self).__init__(parent)
+		super(Widget,self).__init__(parent)
 
-        grid = QtGui.QGridLayout()
-        grid.setSpacing(3)
+		grid = QtGui.QGridLayout()
+		grid.setSpacing(3)
 
-        self.edit_first = QtGui.QDoubleSpinBox()
-        self.edit_first.setSingleStep(float(0.5))
-        self.edit_first.setMinimum(0)
-        self.edit_first.setDecimals(1)
-        self.edit_first.setFixedWidth(100)
+		self.edit_first = QtGui.QDoubleSpinBox()
+		self.edit_first.setSingleStep(float(0.5))
+		self.edit_first.setMinimum(0)
+		self.edit_first.setDecimals(1)
+		self.edit_first.setFixedWidth(100)
 
-        grid.addWidget(QtGui.QLabel('Uren'), 1, 0)
-        grid.addWidget(self.edit_first, 1, 1)
+		grid.addWidget(QtGui.QLabel('Uren'), 1, 0)
+		grid.addWidget(self.edit_first, 1, 1)
 
-        #   add layout for second widget
-        self.edit_second = QtGui.QLineEdit()
-        grid.addWidget(QtGui.QLabel('Omschrijving'), 2, 0)
-        grid.addWidget(self.edit_second, 2, 1)
+		self.edit_second = QtGui.QLineEdit()
+		grid.addWidget(QtGui.QLabel('Omschrijving'), 2, 0)
+		grid.addWidget(self.edit_second, 2, 1)
 
-        apply_button = QtGui.QPushButton('Toevoegen', self)
-        apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text()))
+		apply_button = QtGui.QPushButton('Toevoegen', self)
+		apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text()))
 
-        grid.addWidget(apply_button, 4, 3)
-        self.setLayout(grid)
-        self.setGeometry(300, 300, 600, 300)
+		grid.addWidget(apply_button, 4, 3)
+		self.setLayout(grid)
 
-    def return_strings(self):
-        #   Return list of values. It need map with str (self.lineedit.text() will return QString)
-        return [self.edit_first.value(), self.edit_second.text()]
+		setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		self.setFixedSize(600,350)
 
-    @staticmethod
-    def get_data(parent=None):
-        dialog = Widget(parent)
-        if dialog.exec_() == 0:
+	def return_strings(self):
+		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
+		return [self.edit_first.value(), self.edit_second.text()]
+
+	@staticmethod
+	def get_data(parent=None):
+		dialog = Widget(parent)
+		if dialog.exec_() == 0:
 			return None
-        return dialog.return_strings()
+		return dialog.return_strings()
 
 def urenDialog():
-    return Widget().get_data()  # window is value from edit field
+	return Widget().get_data()  # window is value from edit field
+
+def setWindowPosition(window,resize = True,ax=0,ay=0):
+	pdesk = QtGui.QDesktopWidget()
+	rect = pdesk.screenGeometry(pdesk.primaryScreen())
+	window.move(rect.left()+ax,rect.top()+ay)
+	if resize:
+		window.resize(rect.width(),rect.height())
 
 def controleerJsonLayout(data):
 	layout = QtGui.QFormLayout()
