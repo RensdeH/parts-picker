@@ -46,7 +46,7 @@ def install():
 	#dialog voor password
 	while true:
 		dialogData = raw_input("Wachtwoord:")
-		if encrypt.checkPassword:
+		if encrypt.checkPassword(dialogData):
 			utils.writeJson('../password.json',dialogData)
 			break
 		print("Wachtwoord Incorrect")
