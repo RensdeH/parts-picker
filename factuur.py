@@ -13,18 +13,15 @@ import latexfact
 import api
 import utils
 import dialogs
-
+import windowClass
 #constants
 ITEMS_PER_RIJ = 5
 
 #global QtGui Widgets
 app = QtGui.QApplication(sys.argv)
-
-soortWindow = QtGui.QWidget()
-productWindow = QtGui.QWidget()
-customerWindow = QtGui.QWidget()
-autoKoopWindow = QtGui.QWidget()
-urenWindow = QtGui.QWidget()
+productWindow = windowClass.Window("Producten kiezen")
+customerWindow = windowClass.Window("Klant kiezen")
+urenWindow = windowClass.Window("Uren & Auto")
 
 orderlijst = QtGui.QGridLayout()
 werkLayout = QtGui.QGridLayout()
@@ -60,16 +57,12 @@ def main():
 	fillTabs(Cids)
 	n5 = dt.datetime.now()
 	print("Fill Tabs:"+str((n5-n4).total_seconds()))
-	soortWindowSetup()
 	productWindowSetup()
 	customerWindowSetup()
-	autoKoopWindowSetup()
 	urenWindowSetup()
 	n6 = dt.datetime.now()
 	print("Windows Setup:"+str((n6-n5).total_seconds()))
-	#soortWindow.show()
 	productWindow.show()
-	#customerWindow.show()
 	n7 = dt.datetime.now()
 	print("Show Window:"+str((n7-n6).total_seconds()))
 	print("Total Time:"+str((n7-n1).total_seconds()))
@@ -107,6 +100,10 @@ def rebuildWerkUrenWindow():
 		notNeeded = werkLayout.takeAt(i).widget().setParent(None)
 	rij = 0
 	#werk = (floatUren,stringOmschrijving)
+	if data['Werk'] == []:
+		geenWerk = QtGui.QLabel('Geen werkuren toegevoegd')
+		werkLayout.addWidget(geenWerk)
+
 	for werk in data['Werk']:
 		countlabel = QtGui.QLabel(str(werk[0]))
 		countlabel.setFixedSize(25,40)
@@ -131,116 +128,49 @@ def rebuildWerkUrenWindow():
 #--------------------------Setup----------------------
 
 def urenWindowSetup():
-	dialogs.setWindowPosition(urenWindow)
-	totalLayout = QtGui.QHBoxLayout()
-	leftLayout = QtGui.QVBoxLayout()
+	def saveAuto(autoEdit):
+		data['Auto'] = dialogs.getJsonLayout(autoEdit)
 
-	addUrenb = QtGui.QPushButton()
+	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
+	autoEdit = dialogs.controleerJsonLayout(data['Auto'])
+
+	addUrenb = QtGui.QPushButton("Werk toevoegen")
 	addUrenb.setFixedHeight(100)
 	addUrenb.clicked.connect(addUren)
-	addUrenb.setText("Werk toevoegen")
 
-	vorigeView = QtGui.QPushButton()
-	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(lambda : changeView(productWindow))
-	vorigeView.setFixedWidth(200)
-	vorigeView.setStyleSheet("background-color: yellow");
+	rebuildWerkUrenWindow()
 
-	volgendeView = QtGui.QPushButton()
-	volgendeView.setText("Volgende>")
-	volgendeView.clicked.connect(lambda : changeView(soortWindow))
-	volgendeView.setFixedWidth(200)
-	volgendeView.setStyleSheet("background-color: yellow");
+	scrollGroup = QtGui.QGroupBox()
+	scrollGroup.setLayout(werkLayout)
+	werkScroll = QtGui.QScrollArea()
+	werkScroll.setWidget(scrollGroup)
+	werkScroll.setWidgetResizable(True)
 
-	groupbox2 = QtGui.QGroupBox()
+	leftLayout = QtGui.QVBoxLayout()
+	rightLayout = QtGui.QVBoxLayout()
 
-	scroll2 = QtGui.QScrollArea()
-	scroll2.setWidget(groupbox2)
-	scroll2.setWidgetResizable(True)
+	leftLayout.addWidget(urenWindow.vorigeView,1)
+	leftLayout.addWidget(werkScroll,4)
+	leftLayout.addWidget(addUrenb,1)
 
-	orderlijst.setAlignment(Qt.AlignTop)
-	groupbox2.setLayout(werkLayout)
+	rightLayout.addLayout(autoEdit,4)
+	rightLayout.addWidget(urenWindow.volgendeView,1)
 
-	totalLayout.addLayout(leftLayout)
-	totalLayout.addWidget(autoKoopWindow)
-	totalLayout.addStretch()
+	urenWindow.totalLayout.insertLayout(1,leftLayout)
+	urenWindow.totalLayout.insertLayout(2,rightLayout)
 
-	leftLayout.addWidget(vorigeView)
-	leftLayout.addWidget(scroll2)
-	leftLayout.addWidget(addUrenb)
-	#leftLayout.addWidget(volgendeView)
+	urenWindow.setNextView(customerWindow,opslaan = lambda : saveAuto(autoEdit))
+	urenWindow.setPreviousView(productWindow)
 
 	werkLayout.setAlignment(Qt.AlignTop)
-	urenWindow.setLayout(totalLayout)
-	urenWindow.setWindowTitle("MX5-factuur \'Uren toevoegen\'")
-
-def soortWindowSetup():
-	def setSoort(s,voorruit):
-		data['soortFactuur'] = s
-		if voorruit:
-			changeView(customerWindow)
-		else:
-			changeView(urenWindow)
-		#if s == utils.SoortFactuur.Inkoop:
-		#	changeView(autoKoopWindow)
-		#elif s == utils.SoortFactuur.Verkoop:
-		#	changeView(productWindow)
-		#else:
-		#	changeView(urenWindow)
-
-	dialogs.setWindowPosition(soortWindow)
-	totalLayout = QtGui.QHBoxLayout()
-	buttonLayout = QtGui.QVBoxLayout()
-
-	for en in utils.SoortFactuur:
-		b1 = QtGui.QPushButton()
-		b1.setText(en.name)
-		b1.clicked.connect(lambda st, so = en: setSoort(so,True))
-		b1.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,QtGui.QSizePolicy.MinimumExpanding)
-		#b1.setStyleSheet("background-color: yellow");
-		buttonLayout.addWidget(b1)
-		buttonLayout.addStretch()
-
-	vorigeView = QtGui.QPushButton()
-	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(lambda st, so = en: setSoort(so,False))
-	#vorigeView.setFixedWidth(150)
-	vorigeView.setStyleSheet("background-color: yellow");
-
-	totalLayout.setAlignment(Qt.AlignTop)
-	totalLayout.addWidget(vorigeView,1)
-
-	totalLayout.addLayout(buttonLayout,1)
-	totalLayout.addStretch(1)
-
-	soortWindow.setWindowTitle("MX5-factuur \'Soort factuur\'")
-	soortWindow.setLayout(totalLayout)
 
 def productWindowSetup():
-	dialogs.setWindowPosition(productWindow)
-
-	totalLayout = QtGui.QHBoxLayout()
 	leftLayout = QtGui.QVBoxLayout()
 	rightlayout = QtGui.QVBoxLayout()
 
-	totalLayout.addLayout(leftLayout,3)
-	#totalLayout.addWidget(tabs,3)
-	totalLayout.addLayout(rightlayout,1)
-
-	vorigeView = QtGui.QPushButton()
-	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(lambda : changeView(urenWindow))
-	vorigeView.setFixedWidth(200)
-	vorigeView.setStyleSheet("background-color: yellow");
-
-	#leftLayout.addWidget(vorigeView,1)
 	leftLayout.addWidget(tabs,4)
 
-	productWindow.setWindowTitle("MX5-factuur \'Producten kiezen\'")
-	productWindow.setLayout(totalLayout)
-
 	groupbox2 = QtGui.QGroupBox()
-
 	scroll2 = QtGui.QScrollArea()
 	scroll2.setWidget(groupbox2)
 	scroll2.setWidgetResizable(True)
@@ -248,16 +178,9 @@ def productWindowSetup():
 	orderlijst.setAlignment(Qt.AlignTop)
 	groupbox2.setLayout(orderlijst)
 
-	resetorder = QtGui.QPushButton()
+	resetorder = QtGui.QPushButton("Leegmaken")
 	resetorder.setFixedHeight(80)
-	resetorder.setText("Leegmaken")
 	resetorder.clicked.connect(emptyOrder)
-
-	bevestig = QtGui.QPushButton()
-	bevestig.setFixedHeight(200)
-	bevestig.setText("Volgende>")
-	bevestig.clicked.connect(lambda: changeView(urenWindow))
-	bevestig.setStyleSheet("background-color: yellow");
 
 	actie = QtGui.QAction(productWindow)
 	actie.setShortcut("Ctrl+F")
@@ -266,20 +189,21 @@ def productWindowSetup():
 
 	rightlayout.addWidget(resetorder)
 	rightlayout.addWidget(scroll2)
-	rightlayout.addWidget(bevestig)
+	rightlayout.addWidget(productWindow.volgendeView)
 
 	tabs.setFocusPolicy(Qt.NoFocus)
 
+	productWindow.setNextView(urenWindow)
+	productWindow.totalLayout.addLayout(leftLayout,3)
+	productWindow.totalLayout.addLayout(rightlayout,1)
+
 def customerWindowSetup():
-	def lastView():
-		changeView(soortWindow)
+	def setSoort(s):
+		data['soortFactuur'] = s
 
 	def makeFactuur(rightLayout):
 		customerEdit = rightLayout.itemAt(1)
 		data['klant'] = dialogs.getJsonLayout(customerEdit)
-		#if data['id'] == '':
-		#	data['klant']['id'] = data['klant']['Naam']
-		#latexfact.startFactuur(data['order'],data['Werk'],data['klant'],data['soortFactuur'],'Test')
 		latexfact.startFactuur(data)
 
 	def kiesKlant(layout):
@@ -291,106 +215,54 @@ def customerWindowSetup():
 			notNeeded = l.takeAt(i).widget().setParent(None)
 		layout.insertLayout(1,custEdit)
 
-	dialogs.setWindowPosition(customerWindow)
-
-	totalLayout = QtGui.QHBoxLayout()
-
-	vorigeView = QtGui.QPushButton()
-	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(lastView)
-	vorigeView.setFixedWidth(200)
-	vorigeView.setStyleSheet("background-color: yellow");
-
-	orderDisplay.setAlignment(Qt.AlignTop)
-	orderDisplay.setWordWrap(True)
+	def rebuildOrderDisplay():
+		s = ''
+		for o in data['order']:
+			try:
+				s += str(o['Aantal']) + ' x ' + utils.clean(o['item']['name']) + '\n'
+			except:
+				s += "\n"
+		if data['order'] == []:
+			s = 'Geen producten gekozen'
+		orderDisplay.setText(s)
 
 	leftLayout = QtGui.QVBoxLayout()
-	leftLayout.addWidget(vorigeView,1)
-	leftLayout.addWidget(orderDisplay,5)
 	rightLayout = QtGui.QVBoxLayout()
+
+	bestaandeKlantKiezen = QtGui.QPushButton("Bestaande Klant Kiezen")
+	bestaandeKlantKiezen.clicked.connect(lambda s, edit = rightLayout: kiesKlant(edit))
+	bestaandeKlantKiezen.setFixedHeight(100)
 
 	data['klant'] = utils.readJson('Resources/emptyCustomer.json')
 	customerEdit = dialogs.controleerJsonLayout(data['klant'])
 
-	factuurMaken = QtGui.QPushButton()
+	buttonLayout = QtGui.QHBoxLayout()
+	soortLabel = QtGui.QLabel("Soort Factuur:")
+	buttonLayout.addWidget(soortLabel)
+	buttonLayout.setAlignment(Qt.AlignLeft)
+	for en in utils.SoortFactuur:
+		b1 = QtGui.QRadioButton(en.name)
+		b1.clicked.connect(lambda s, so = en : setSoort(so))
+		buttonLayout.addWidget(b1)
 
-	bestaandeKlantKiezen = QtGui.QPushButton()
-	rightLayout.addWidget(bestaandeKlantKiezen,1)
-	rightLayout.addLayout(customerEdit,4)
-	rightLayout.addWidget(factuurMaken,1)
+	orderDisplay.setAlignment(Qt.AlignTop)
+	orderDisplay.setWordWrap(True)
 
-	bestaandeKlantKiezen.setText("Bestaande Klant Kiezen")
-	bestaandeKlantKiezen.clicked.connect(lambda s, edit = rightLayout: kiesKlant(edit))
-	bestaandeKlantKiezen.setFixedHeight(100)
+	leftLayout.addWidget(customerWindow.vorigeView,1)
+	leftLayout.addWidget(orderDisplay,5)
 
-	factuurMaken.setText("Factuur maken")
-	factuurMaken.clicked.connect(lambda s, edit = rightLayout: makeFactuur(edit)) #latexfact.startFactuur(order))
-	factuurMaken.setFixedHeight(200)
-	factuurMaken.setStyleSheet("background-color: yellow");
+	rightLayout.addWidget(bestaandeKlantKiezen)
+	rightLayout.addLayout(customerEdit)
+	rightLayout.addLayout(buttonLayout)
+	rightLayout.addWidget(customerWindow.volgendeView)
 
-	totalLayout.addLayout(leftLayout,1)
-	totalLayout.addLayout(rightLayout,5)
+	customerWindow.setNextView(customerWindow,opslaan = lambda : makeFactuur(rightLayout))
+	customerWindow.setPreviousView(urenWindow)
 
-	customerWindow.setLayout(totalLayout)
-	customerWindow.setWindowTitle("MX5-factuur \'Klant kiezen\'")
+	customerWindow.setRebuild(rebuildOrderDisplay)
 
-def autoKoopWindowSetup():
-	def saveAuto(autoEdit):
-		data['Auto'] = dialogs.getJsonLayout(autoEdit)
-		changeView(soortWindow)
-
-	#dialogs.setWindowPosition(autoKoopWindow)
-	totalLayout = QtGui.QHBoxLayout()
-
-	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
-	autoEdit = dialogs.controleerJsonLayout(data['Auto'])
-
-	vorigeView = QtGui.QPushButton()
-	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(lambda : changeView(productWindow))
-	vorigeView.setFixedWidth(200)
-	vorigeView.setStyleSheet("background-color: yellow");
-
-	klantKiezen = QtGui.QPushButton()
-	klantKiezen.setText("Volgende")
-	klantKiezen.clicked.connect(lambda s, edit = autoEdit: saveAuto(edit))
-	klantKiezen.setFixedWidth(200)
-	klantKiezen.setStyleSheet("background-color: yellow");
-	
-	rightLayout = QtGui.QVBoxLayout()
-	#rightLayout.addWidget(vorigeView,1)
-	rightLayout.addLayout(autoEdit,4)
-	rightLayout.addWidget(klantKiezen,1)
-
-	totalLayout.addLayout(rightLayout)
-
-	autoKoopWindow.setLayout(totalLayout)
-	#autoKoopWindow.setWindowTitle("MX5-factuur \'Auto-informatie\'")
-
-#########################################################
-#----------------------Switch Views----------------------
-#########################################################
-
-def changeView(window):
-	soortWindow.hide()
-	productWindow.hide()
-	customerWindow.hide()
-	#autoKoopWindow.hide()
-	urenWindow.hide()
-	rebuildOrderDisplay()
-	window.show()
-
-#Tot nu toe de enige functie die informatie laat zien van andere views
-def rebuildOrderDisplay():
-	s = ''
-	for o in data['order']:
-		try:
-			s += str(o['Aantal']) + ' x ' + utils.clean(o['item']['name']) + '\n'
-		except:
-			s += "\n"
-	if data['order'] == []:
-		s = 'Geen producten gekozen'
-	orderDisplay.setText(s)
+	customerWindow.totalLayout.addLayout(leftLayout,1)
+	customerWindow.totalLayout.addLayout(rightLayout,5)
 
 #############################################################
 #-------------------------Zoeken-----------------------------
