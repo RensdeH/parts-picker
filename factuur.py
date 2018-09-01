@@ -142,13 +142,15 @@ def urenWindowSetup():
 
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
-	vorigeView.clicked.connect(lambda : changeView(autoKoopWindow))
-	vorigeView.setFixedWidth(150)
+	vorigeView.clicked.connect(lambda : changeView(productWindow))
+	vorigeView.setFixedWidth(200)
+	vorigeView.setStyleSheet("background-color: yellow");
 
 	volgendeView = QtGui.QPushButton()
 	volgendeView.setText("Volgende>")
 	volgendeView.clicked.connect(lambda : changeView(soortWindow))
-	volgendeView.setFixedWidth(150)
+	volgendeView.setFixedWidth(200)
+	volgendeView.setStyleSheet("background-color: yellow");
 
 	groupbox2 = QtGui.QGroupBox()
 
@@ -160,13 +162,13 @@ def urenWindowSetup():
 	groupbox2.setLayout(werkLayout)
 
 	totalLayout.addLayout(leftLayout)
-	totalLayout.addStretch()
+	totalLayout.addWidget(autoKoopWindow)
 	totalLayout.addStretch()
 
 	leftLayout.addWidget(vorigeView)
 	leftLayout.addWidget(scroll2)
 	leftLayout.addWidget(addUrenb)
-	leftLayout.addWidget(volgendeView)
+	#leftLayout.addWidget(volgendeView)
 
 	werkLayout.setAlignment(Qt.AlignTop)
 	urenWindow.setLayout(totalLayout)
@@ -195,17 +197,21 @@ def soortWindowSetup():
 		b1.setText(en.name)
 		b1.clicked.connect(lambda st, so = en: setSoort(so,True))
 		b1.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,QtGui.QSizePolicy.MinimumExpanding)
+		#b1.setStyleSheet("background-color: yellow");
 		buttonLayout.addWidget(b1)
 		buttonLayout.addStretch()
 
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
 	vorigeView.clicked.connect(lambda st, so = en: setSoort(so,False))
-	vorigeView.setFixedWidth(150)
+	#vorigeView.setFixedWidth(150)
+	vorigeView.setStyleSheet("background-color: yellow");
 
-	totalLayout.addStretch()
-	totalLayout.addLayout(buttonLayout)
-	totalLayout.addStretch()
+	totalLayout.setAlignment(Qt.AlignTop)
+	totalLayout.addWidget(vorigeView,1)
+
+	totalLayout.addLayout(buttonLayout,1)
+	totalLayout.addStretch(1)
 
 	soortWindow.setWindowTitle("MX5-factuur \'Soort factuur\'")
 	soortWindow.setLayout(totalLayout)
@@ -223,10 +229,11 @@ def productWindowSetup():
 
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
-	#vorigeView.clicked.connect(lambda : changeView(autoKoopWindow))
-	vorigeView.setFixedWidth(150)
+	vorigeView.clicked.connect(lambda : changeView(urenWindow))
+	vorigeView.setFixedWidth(200)
+	vorigeView.setStyleSheet("background-color: yellow");
 
-	leftLayout.addWidget(vorigeView,1)
+	#leftLayout.addWidget(vorigeView,1)
 	leftLayout.addWidget(tabs,4)
 
 	productWindow.setWindowTitle("MX5-factuur \'Producten kiezen\'")
@@ -249,7 +256,8 @@ def productWindowSetup():
 	bevestig = QtGui.QPushButton()
 	bevestig.setFixedHeight(200)
 	bevestig.setText("Volgende>")
-	bevestig.clicked.connect(lambda: changeView(autoKoopWindow))
+	bevestig.clicked.connect(lambda: changeView(urenWindow))
+	bevestig.setStyleSheet("background-color: yellow");
 
 	actie = QtGui.QAction(productWindow)
 	actie.setShortcut("Ctrl+F")
@@ -290,7 +298,8 @@ def customerWindowSetup():
 	vorigeView = QtGui.QPushButton()
 	vorigeView.setText("<Vorige")
 	vorigeView.clicked.connect(lastView)
-	vorigeView.setFixedWidth(150)
+	vorigeView.setFixedWidth(200)
+	vorigeView.setStyleSheet("background-color: yellow");
 
 	orderDisplay.setAlignment(Qt.AlignTop)
 	orderDisplay.setWordWrap(True)
@@ -317,6 +326,7 @@ def customerWindowSetup():
 	factuurMaken.setText("Factuur maken")
 	factuurMaken.clicked.connect(lambda s, edit = rightLayout: makeFactuur(edit)) #latexfact.startFactuur(order))
 	factuurMaken.setFixedHeight(200)
+	factuurMaken.setStyleSheet("background-color: yellow");
 
 	totalLayout.addLayout(leftLayout,1)
 	totalLayout.addLayout(rightLayout,5)
@@ -327,9 +337,9 @@ def customerWindowSetup():
 def autoKoopWindowSetup():
 	def saveAuto(autoEdit):
 		data['Auto'] = dialogs.getJsonLayout(autoEdit)
-		changeView(urenWindow)
+		changeView(soortWindow)
 
-	dialogs.setWindowPosition(autoKoopWindow)
+	#dialogs.setWindowPosition(autoKoopWindow)
 	totalLayout = QtGui.QHBoxLayout()
 
 	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
@@ -339,21 +349,23 @@ def autoKoopWindowSetup():
 	vorigeView.setText("<Vorige")
 	vorigeView.clicked.connect(lambda : changeView(productWindow))
 	vorigeView.setFixedWidth(200)
+	vorigeView.setStyleSheet("background-color: yellow");
 
 	klantKiezen = QtGui.QPushButton()
-	klantKiezen.setText("Opslaan")
+	klantKiezen.setText("Volgende")
 	klantKiezen.clicked.connect(lambda s, edit = autoEdit: saveAuto(edit))
-	klantKiezen.setFixedHeight(200)
-
+	klantKiezen.setFixedWidth(200)
+	klantKiezen.setStyleSheet("background-color: yellow");
+	
 	rightLayout = QtGui.QVBoxLayout()
-	rightLayout.addWidget(vorigeView,1)
+	#rightLayout.addWidget(vorigeView,1)
 	rightLayout.addLayout(autoEdit,4)
 	rightLayout.addWidget(klantKiezen,1)
 
 	totalLayout.addLayout(rightLayout)
 
 	autoKoopWindow.setLayout(totalLayout)
-	autoKoopWindow.setWindowTitle("MX5-factuur \'Auto-informatie\'")
+	#autoKoopWindow.setWindowTitle("MX5-factuur \'Auto-informatie\'")
 
 #########################################################
 #----------------------Switch Views----------------------
@@ -363,7 +375,7 @@ def changeView(window):
 	soortWindow.hide()
 	productWindow.hide()
 	customerWindow.hide()
-	autoKoopWindow.hide()
+	#autoKoopWindow.hide()
 	urenWindow.hide()
 	rebuildOrderDisplay()
 	window.show()

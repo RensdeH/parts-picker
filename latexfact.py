@@ -124,12 +124,12 @@ def makeOrderText(order,werk,auto):
 			orderText += r"""\hourrow{Werkplaatstarief """+w[1]+r"""}{"""+str(w[0])+r"""}{62.5}"""
 			uitbtwhoog += float(62.5) * w[0]
 
-	if auto['Model'] == '':
+	if auto['Model'] != '':
 		orderText += r"""
 		\feetype{Auto}"""
 		autoOmschrijving = getCarDes(auto)
 		orderText += r"""\unitrow{"""+getCarDes(auto)+r"""}{"""+str(1)+r"""}{"""+auto['Prijs']+r"""}{}"""
-		#uitbtwgeen += auto['Prijs']
+		uitbtwgeen += float(auto['Prijs'])
 
 	btwhoog = (uitbtwhoog/1.21)*0.21
 	orderText+=r"""
