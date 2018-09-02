@@ -201,9 +201,10 @@ def customerWindowSetup():
 	def setSoort(s):
 		data['soortFactuur'] = s
 
-	def makeFactuur(rightLayout):
+	def makeFactuur(rightLayout,omsLine):
 		customerEdit = rightLayout.itemAt(1)
 		data['klant'] = dialogs.getJsonLayout(customerEdit)
+		data['Omschrijving'] = str(omsLine.text())
 		latexfact.startFactuur(data)
 
 	def kiesKlant(layout):
@@ -229,12 +230,13 @@ def customerWindowSetup():
 	leftLayout = QtGui.QVBoxLayout()
 	rightLayout = QtGui.QVBoxLayout()
 
+	data['klant'] = utils.readJson('Resources/emptyCustomer.json')
+	customerEdit = dialogs.controleerJsonLayout(data['klant'])
+
 	bestaandeKlantKiezen = QtGui.QPushButton("Bestaande Klant Kiezen")
 	bestaandeKlantKiezen.clicked.connect(lambda s, edit = rightLayout: kiesKlant(edit))
 	bestaandeKlantKiezen.setFixedHeight(100)
 
-	data['klant'] = utils.readJson('Resources/emptyCustomer.json')
-	customerEdit = dialogs.controleerJsonLayout(data['klant'])
 
 	buttonLayout = QtGui.QHBoxLayout()
 	soortLabel = QtGui.QLabel("Soort Factuur:")
@@ -245,6 +247,12 @@ def customerWindowSetup():
 		b1.clicked.connect(lambda s, so = en : setSoort(so))
 		buttonLayout.addWidget(b1)
 
+	omsLayout = QtGui.QHBoxLayout()
+	omsLabel = QtGui.QLabel("Omschrijving")
+	omsLine = QtGui.QLineEdit()
+	omsLayout.addWidget(omsLabel)
+	omsLayout.addWidget(omsLine)
+
 	orderDisplay.setAlignment(Qt.AlignTop)
 	orderDisplay.setWordWrap(True)
 
@@ -254,9 +262,10 @@ def customerWindowSetup():
 	rightLayout.addWidget(bestaandeKlantKiezen)
 	rightLayout.addLayout(customerEdit)
 	rightLayout.addLayout(buttonLayout)
+	rightLayout.addLayout(omsLayout)
 	rightLayout.addWidget(customerWindow.volgendeView)
 
-	customerWindow.setNextView(customerWindow,opslaan = lambda : makeFactuur(rightLayout))
+	customerWindow.setNextView(customerWindow,opslaan = lambda : makeFactuur(rightLayout,omsLine))
 	customerWindow.setPreviousView(urenWindow)
 
 	customerWindow.setRebuild(rebuildOrderDisplay)
@@ -338,7 +347,6 @@ def defineTabs(lijst):
 		for a in lijst:
 			for c in a['categories']:
 				cids.setdefault(str(c['category_id']),[]).append(a)
-
 		return cids
 
 	cids = listCatIds(lijst)

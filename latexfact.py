@@ -48,7 +48,7 @@ def makeTex(data):
 	klant = data['klant']
 	bedrijfsinfo = data['bedrijf']
 	factuurNummer = data['FactuurNummer']
-	omschrijving = "Hi"#data['omschrijving']
+	omschrijving = data['Omschrijving']
 	auto = None
 	if 'Auto' in data:
 		auto = data['Auto']
