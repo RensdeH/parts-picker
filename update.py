@@ -1,6 +1,7 @@
 import api
 import encrypt
 import utils
+import os
 import requests
 import StringIO
 from PIL import Image
@@ -38,20 +39,25 @@ def downloadImage(item):
 def main():
 	data = api.getArtikels()
 	utils.writeJson('Resources/Artikelen.json',data)
-	for item in data:
-		downloadImage(item)
+	#for item in data:
+	#	downloadImage(item)
 
 def install():
 	#install tex packages & python-qt4
 	#dialog voor password
-	while true:
+	while True:
 		dialogData = raw_input("Wachtwoord:")
 		if encrypt.checkPassword(dialogData):
-			utils.writeJson('../password.json',dialogData)
+			data = {}
+			data['password'] = dialogData
+			utils.writeJson('../password.json',data)
 			break
 		print("Wachtwoord Incorrect")
-
+	if not os.path.exists('Facturen/'):
+		os.makedirs('Facturen/')
+	if not os.path.exists('Resources/Klanten/'):
+		os.makedirs('Resources/Klanten/')
 	makeJsonFiles()
 	main()
 
-#main()
+install()

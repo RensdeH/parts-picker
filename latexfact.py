@@ -41,11 +41,11 @@ def makeFactuur(data):
 	openfile(pdffilename,'Facturen/')
 
 def makeTex(data):
-	order = data['order']
+	order = data['Artikelen']
 	werk = None
 	if 'Werk' in data:
 		werk = data['Werk']
-	klant = data['klant']
+	klant = data['Klant']
 	bedrijfsinfo = data['bedrijf']
 	factuurNummer = data['FactuurNummer']
 	omschrijving = data['Omschrijving']

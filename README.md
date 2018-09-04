@@ -1,14 +1,15 @@
 # parts-picker
 Facturatie programma dmv Mijnwebwinkel api
 Benodigde packages
--python
--python-qt4
--python-PIL
--texlive-latex-base
--texlive-lang-european
--texlive-fonts-recommended
--texlive-latex-recommended
--Directory Facturen
--run update.main()
--run update.makeJsonFiles()
--evt '../password.json' maken
+-python-pip   #python algemene functies
+-python-qt4		#windowmanager
+-python-PIL		#Image handling
+-texlive-lang-european			#babel package
+-texlive-fonts-recommended	#euroteken en helvetica
+-texlive-latex-recommended	#Latex algemeen
+-run update.install()
+---Directory Facturen
+---Directory Resources/Autos
+---Directory Resources/Klanten
+---run update.main()
+---run update.makeJsonFiles()

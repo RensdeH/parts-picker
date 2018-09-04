@@ -5,6 +5,7 @@ import os.path
 import json
 from collections import OrderedDict
 from enum import Enum
+#custom imports not allowed
 
 class SoortFactuur(Enum):
 	Inkoop = 1
@@ -38,6 +39,11 @@ def readfile(filename):
 	read.close()
 	return s
 
+def printData(data):
+	for key in ['Auto','Werk','Klant','Artikelen']:
+		if key in data:
+			print(data[key])
+
 #Templates voor soorten facturen
 #emptyCustomer
 #emptyAuto
@@ -61,6 +67,19 @@ def makeMockCustomer():
 	data['Kenteken'] = '12-RUS-9'
 	data['km-stand'] = '45682'
 	writeJson('Resources/Klanten/mockCustomer.json',data)
+	return data
+
+def makeMockAuto():
+	data = OrderedDict()
+	data['Kenteken'] = '12-ABS-09'
+	data['Model'] = 'NC'
+	data['Bouwjaar'] = '2010'
+	data['km-stand'] = '123456'
+	data['Meldcode'] = '59'
+	data['APK'] = ''
+	data['extra info'] = 'Roest onder de kap'
+	data['Prijs'] = '2300'
+	writeJson('Resources/Autos/mockAuto.json',data)
 	return data
 
 def makeCompany():
@@ -126,7 +145,7 @@ def makeEmptyAuto():
 
 def makeCounters():
 	#TODO check if file is correct
-	if os.path.isfile(filename):
+	if os.path.isfile('Resources/counters.json'):
 		return
 	data = {}
 	data['R'] = 300

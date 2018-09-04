@@ -2,6 +2,9 @@ import os.path
 import json
 import sys
 import utils
+
+from collections import OrderedDict
+
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
@@ -70,7 +73,7 @@ def controleerJsonLayout(data):
 	return layout
 
 def getJsonLayout(formLayout):
-	data={}
+	data = OrderedDict()
 	aantalRows = formLayout.rowCount()
 	for x in range(aantalRows):
 		rowLabel = formLayout.itemAt(x,QtGui.QFormLayout.LabelRole)

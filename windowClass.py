@@ -2,7 +2,11 @@ import dialogs
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
+import utils
+data = None
+
 class Window(QtGui.QWidget):
+
 	def __init__(self,Titel, parent=None):
 		super(Window,self).__init__(parent)
 		dialogs.setWindowPosition(self) #TODO evt. naar hier halen
@@ -52,9 +56,11 @@ class Window(QtGui.QWidget):
 		if self.opslaan != None:
 			self.opslaan()
 		self.changeView(self.next)
+		utils.printData(data)
 
 	def previousView(self):
 		self.changeView(self.previous)
+		utils.printData(data)
 
 	#Kan handig zijn om te jumpen naar andere windows
 	def changeView(self,window):

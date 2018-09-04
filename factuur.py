@@ -32,11 +32,11 @@ tablist = []
 
 # global data -Minimize this!
 data = {} #factuur data (order, auto, Uren(aantal,omschrijving),klant,soort)
-data['Werk']=[]
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
 
 def main():
+	windowClass.data = data
 	def loadArtikels(silent=True):
 		data = utils.readJson('Resources/Artikelen.json')
 		if data == {}:
@@ -48,7 +48,8 @@ def main():
 	n2 = dt.datetime.now()
 	print("Declaring:"+str((n2-n1).total_seconds()))
 	lijst = loadArtikels()
-	data['order'] = []
+	data['Artikelen'] = []
+	data['Werk'] = []
 	n3 = dt.datetime.now()
 	print("Get artikelen:"+str((n3-n2).total_seconds()))
 	Cids.update(defineTabs(lijst))
@@ -128,11 +129,28 @@ def rebuildWerkUrenWindow():
 #--------------------------Setup----------------------
 
 def urenWindowSetup():
-	def saveAuto(autoEdit):
+	def saveAuto(layout):
+		autoEdit = layout.itemAt(1)
 		data['Auto'] = dialogs.getJsonLayout(autoEdit)
 
-	data['Auto'] = utils.readJson('Resources/emptyAuto.json')
-	autoEdit = dialogs.controleerJsonLayout(data['Auto'])
+	def kiesAuto(layout):
+		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Autos')
+		autoData = utils.readJson(fileName)
+		carEdit = dialogs.controleerJsonLayout(autoData)
+		l = layout.takeAt(1)
+		for i in reversed(range(l.count())):
+			notNeeded = l.takeAt(i).widget().setParent(None)
+		layout.insertLayout(1,carEdit)
+
+	leftLayout = QtGui.QVBoxLayout()
+	rightLayout = QtGui.QVBoxLayout()
+
+	emptyAuto = utils.readJson('Resources/emptyAuto.json')
+	autoEdit = dialogs.controleerJsonLayout(emptyAuto)
+
+	bestaandeAutoKiezen = QtGui.QPushButton("Bestaande Auto Kiezen")
+	bestaandeAutoKiezen.clicked.connect(lambda s, edit = rightLayout: kiesAuto(edit))
+	bestaandeAutoKiezen.setFixedHeight(100)
 
 	addUrenb = QtGui.QPushButton("Werk toevoegen")
 	addUrenb.setFixedHeight(100)
@@ -146,20 +164,18 @@ def urenWindowSetup():
 	werkScroll.setWidget(scrollGroup)
 	werkScroll.setWidgetResizable(True)
 
-	leftLayout = QtGui.QVBoxLayout()
-	rightLayout = QtGui.QVBoxLayout()
-
 	leftLayout.addWidget(urenWindow.vorigeView,1)
 	leftLayout.addWidget(werkScroll,4)
 	leftLayout.addWidget(addUrenb,1)
 
+	rightLayout.addWidget(bestaandeAutoKiezen,1)
 	rightLayout.addLayout(autoEdit,4)
 	rightLayout.addWidget(urenWindow.volgendeView,1)
 
 	urenWindow.totalLayout.insertLayout(1,leftLayout)
 	urenWindow.totalLayout.insertLayout(2,rightLayout)
 
-	urenWindow.setNextView(customerWindow,opslaan = lambda : saveAuto(autoEdit))
+	urenWindow.setNextView(customerWindow,opslaan = lambda : saveAuto(rightLayout))
 	urenWindow.setPreviousView(productWindow)
 
 	werkLayout.setAlignment(Qt.AlignTop)
@@ -203,7 +219,7 @@ def customerWindowSetup():
 
 	def makeFactuur(rightLayout,omsLine):
 		customerEdit = rightLayout.itemAt(1)
-		data['klant'] = dialogs.getJsonLayout(customerEdit)
+		data['Klant'] = dialogs.getJsonLayout(customerEdit)
 		data['Omschrijving'] = str(omsLine.text())
 		latexfact.startFactuur(data)
 
@@ -218,34 +234,50 @@ def customerWindowSetup():
 
 	def rebuildOrderDisplay():
 		s = ''
-		for o in data['order']:
+		for o in data['Artikelen']:
 			try:
 				s += str(o['Aantal']) + ' x ' + utils.clean(o['item']['name']) + '\n'
 			except:
 				s += "\n"
-		if data['order'] == []:
+		if data['Artikelen'] == []:
 			s = 'Geen producten gekozen'
 		orderDisplay.setText(s)
+
+	def predictSoort(buttons):
+		buttons[1].toggle()
+		if data['Auto']['Prijs']<0:
+			buttons[0].toggle()
+			return
+		if data['Auto']['Model'] is not '':
+			buttons[1].toggle()
+			return
+		if data['Werk'] is not []:
+			buttons[2].toggle()
+			return
+		buttons[3].toggle()
 
 	leftLayout = QtGui.QVBoxLayout()
 	rightLayout = QtGui.QVBoxLayout()
 
-	data['klant'] = utils.readJson('Resources/emptyCustomer.json')
-	customerEdit = dialogs.controleerJsonLayout(data['klant'])
+	emptyKlant = utils.readJson('Resources/emptyCustomer.json')
+	customerEdit = dialogs.controleerJsonLayout(emptyKlant)
 
 	bestaandeKlantKiezen = QtGui.QPushButton("Bestaande Klant Kiezen")
 	bestaandeKlantKiezen.clicked.connect(lambda s, edit = rightLayout: kiesKlant(edit))
 	bestaandeKlantKiezen.setFixedHeight(100)
 
-
 	buttonLayout = QtGui.QHBoxLayout()
 	soortLabel = QtGui.QLabel("Soort Factuur:")
 	buttonLayout.addWidget(soortLabel)
 	buttonLayout.setAlignment(Qt.AlignLeft)
+
+	buttons = []
 	for en in utils.SoortFactuur:
 		b1 = QtGui.QRadioButton(en.name)
 		b1.clicked.connect(lambda s, so = en : setSoort(so))
 		buttonLayout.addWidget(b1)
+		buttons.append(b1)
+	predictSoort(buttons)
 
 	omsLayout = QtGui.QHBoxLayout()
 	omsLabel = QtGui.QLabel("Omschrijving")
@@ -459,10 +491,10 @@ def makeLabel(item):
 ################################################################
 
 def itemClicked(item):
-	if item not in list(map(lambda x: x['item'],data['order'])):
-		data['order'].append({'Aantal':1,'item':item})
+	if item not in list(map(lambda x: x['item'],data['Artikelen'])):
+		data['Artikelen'].append({'Aantal':1,'item':item})
 	else:
-		for o in data['order']:
+		for o in data['Artikelen']:
 			if o['item'] is item:
 				o['Aantal'] = o['Aantal']+1
 				break
@@ -472,7 +504,7 @@ def itemClicked(item):
 def removeItem(item):
 	item['Aantal']-=1
 	if item['Aantal']==0:
-		data['order'].remove(item)
+		data['Artikelen'].remove(item)
 	rebuildOrderLijst()
 
 def addItem(item):
@@ -480,14 +512,14 @@ def addItem(item):
 	rebuildOrderLijst()
 
 def emptyOrder():
-	del data['order'][:]
+	del data['Artikelen'][:]
 	rebuildOrderLijst()
 
 def rebuildOrderLijst():
 	for i in reversed(range(orderlijst.count())):
 		notNeeded = orderlijst.takeAt(i).widget().setParent(None)
 	rij=0
-	for o in data['order']:
+	for o in data['Artikelen']:
 		removebutton = QtGui.QPushButton("-")
 		removebutton.setFixedSize(40,40)
 		removebutton.clicked.connect(lambda s, orde=o: removeItem(orde))
