@@ -114,9 +114,9 @@
     \endhead
 }{
     \hline\hline%\hline
-    {\bf Totaal Incl. BTW} & & & {\bf \EUR{\total{cost}}} \\
+    {\bf Totaal incl. BTW} & & & {\bf \EUR{\total{cost}}} \\
     %{\bf Btw-vrij} & & & {\bf \EUR{\total{btwgeen}}} \\
-    {\bf 21 \% Btw uit \EUR{\total{uitbtwhoog}}} & & & {\bf \EUR{\total{btwhoog}}} \\
+    {\bf BTW 21\% uit \EUR{\total{uitbtwhoog}}} & & & {\bf \EUR{\total{btwhoog}}} \\
     {\bf BTW margeregeling uit \EUR{\total{uitbtwgeen}}} & & & {\bf \EUR{\total{btwgeen}}} \\
     %\hline
     \\*[1ex]

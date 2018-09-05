@@ -84,16 +84,16 @@ def makeMockAuto():
 
 def makeCompany():
 	data = OrderedDict()
-	data['Straat'] = ""
-	data['Plaats'] = ''
-	data['Land'] = ''
-	data['Postcode'] = ''
-	data['Email'] = ''
-	data['Website'] = ''
-	data['KvK'] = ''
-	data['BTW-nr.'] = ''
-	data['IBAN'] = ''
-	data['BIC'] = ''
+	data['Straat'] = 'Energieweg 9-11'
+	data['Plaats'] = 'Meerkerk'
+	data['Land'] = 'Nederland'
+	data['Postcode'] = '4231DJ'
+	data['Email'] = 'info@mx5-winkel.nl'
+	data['Website'] = 'MX5-winkel.nl'
+	data['KvK'] = '66326141'
+	data['BTW-nr.'] = 'NL856495621B01'
+	data['IBAN'] = 'NL63RABO0108245489'
+	data['BIC'] = 'RABONL2U'
 	#Niet nodig voor bottom.txt
 	data['Telefoon'] = ''
 	data['Bedrijfsnaam'] = ""
@@ -114,7 +114,7 @@ def makeEmptyCompany():
 	#Niet nodig voor bottom.txt
 	data['Telefoon'] = ''
 	data['Bedrijfsnaam'] = ""
-	writeJson('Resources/company.json',data)
+	writeJson('Resources/company.json',makeCompany())
 	return data
 
 def makeEmptyCustomer():
@@ -143,11 +143,23 @@ def makeEmptyAuto():
 	writeJson('Resources/emptyAuto.json',data)
 	return data
 
+def makeCustomProducts():
+	data = []
+	olie = {}
+	olie['Prijs'] = '17.35'
+	olie['Aantal'] = '3.8'
+	olie['Naam'] = 'Motorolie 10W40'
+	olie['id'] = 'olie'
+	olie['name'] = 'Motorolie 10W40'
+	data.append(olie)
+	writeJson('Resources/Custom/custom.json',data)
+
 def makeCounters():
 	#TODO check if file is correct
-	if os.path.isfile('Resources/counters.json'):
+	if not os.path.isfile('Resources/counters.json'):
 		return
 	data = {}
+	data['C'] = 100
 	data['R'] = 300
 	data['V'] = 200
 	data['I'] = 300

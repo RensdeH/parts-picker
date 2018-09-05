@@ -12,6 +12,7 @@ def makeJsonFiles():
 	utils.makeEmptyCustomer()
 	utils.makeEmptyCompany()
 	utils.makeMockCustomer()
+	utils.makeMockAuto()
 	utils.makeCounters()
 
 	data = api.getArtikels(aantal = 10,silent=True)
@@ -39,8 +40,8 @@ def downloadImage(item):
 def main():
 	data = api.getArtikels()
 	utils.writeJson('Resources/Artikelen.json',data)
-	#for item in data:
-	#	downloadImage(item)
+	for item in data:
+		downloadImage(item)
 
 def install():
 	#install tex packages & python-qt4
@@ -57,7 +58,9 @@ def install():
 		os.makedirs('Facturen/')
 	if not os.path.exists('Resources/Klanten/'):
 		os.makedirs('Resources/Klanten/')
+	if not os.path.exists('Resources/Autos/'):
+		os.makedirs('Resources/Autos/')
 	makeJsonFiles()
 	main()
 
-install()
+main()

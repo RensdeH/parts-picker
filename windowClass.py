@@ -55,14 +55,17 @@ class Window(QtGui.QWidget):
 	def nextView(self):
 		if self.opslaan != None:
 			self.opslaan()
-		self.changeView(self.next)
+		if self.next is not None:
+			self.changeView(self.next)
 		utils.printData(data)
 
 	def previousView(self):
-		self.changeView(self.previous)
+		if self.previous is not None:
+			self.changeView(self.previous)
 		utils.printData(data)
 
 	#Kan handig zijn om te jumpen naar andere windows
 	def changeView(self,window):
+		window.show()
 		self.hide()
 		window.show()

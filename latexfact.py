@@ -4,6 +4,7 @@ import datetime as dt
 import api
 import os
 import shutil
+import dialogs
 
 #deprecated
 def mockfact():
@@ -18,12 +19,15 @@ def mockfact():
 def factuurFromData(data):
 	startFactuur(data)
 
-def startFactuur(data):
+def startFactuur(data,voorbeeld):
 	data['bedrijf'] = standardBedrijfInfo()
-	makeFactuur(data)
+	makeFactuur(data,voorbeeld)
 
-def makeFactuur(data):
-	factuurNummer = getFactuurNummer(data['soortFactuur'])
+def makeFactuur(data,voorbeeld):
+	if 'soortFactuur' not in data:
+		dialogs.errorDialog()
+		return
+	factuurNummer = getFactuurNummer(data['soortFactuur'],voorbeeld)
 	data['FactuurNummer'] = factuurNummer
 	workingDir = 'Invoice/'
 	filename = factuurNummer + '.tex'
@@ -42,9 +46,7 @@ def makeFactuur(data):
 
 def makeTex(data):
 	order = data['Artikelen']
-	werk = None
-	if 'Werk' in data:
-		werk = data['Werk']
+	werk = data['Werk']
 	klant = data['Klant']
 	bedrijfsinfo = data['bedrijf']
 	factuurNummer = data['FactuurNummer']
@@ -60,15 +62,17 @@ def makeTex(data):
 	latexCode += makeBottomText(bedrijfsinfo)
 	return latexCode
 
-def getFactuurNummer(soort):
+def getFactuurNummer(soort,voorbeeld):
 	S = soort.name[0:1] #TODO
 	jaar = dt.datetime.now().year
-	counter = getCounter(S)
+	counter = getCounter('C',voorbeeld)
 	return str(jaar) +'-'+ S + str(counter)
 
-def getCounter(S):
+def getCounter(S,voorbeeld):
 	counters = utils.readJson('Resources/counters.json')
 	c = counters[S] + 1
+	if voorbeeld:
+		return c
 	counters[S] = c
 	utils.writeJson('Resources/counters.json',counters)
 	return c
@@ -77,7 +81,8 @@ def makeStartText():
 	return utils.readfile('Invoice/top.txt')
 
 def makeTopText(klant,factuurnummer, omschrijving):
-	datum = str(dt.date.today())
+	datumData = dt.date.today()
+	datum = datumData.strftime("%d-%m-%Y")
 	topText = r"""\begin{tabular}[t]{l@{}}
     	\tab """+klant['Naam']+r""" \\
     	\tab """+klant['Straat']+r"""\\
@@ -111,13 +116,13 @@ def makeOrderText(order,werk,auto):
 	\begin{invoiceTable}
 	\feetype{Producten}"""
 	for o in order:
-		orderText += '\unitrow{'+o['item']['name'][0:30]+'}{'+str(o['Aantal'])+'}{'+o['item']['price']['default']+'}{}'
+		orderText += '\unitrow{'+o['item']['name']+'}{'+str(o['Aantal'])+'}{'+o['item']['price']['default']+'}{}'
 		if float(o['item']['tax']) == 21:
 			uitbtwhoog += float(o['item']['price']['default']) * o['Aantal']
 		elif float(o['item']['tax']) == 0:
 			uitbtwgeen += float(o['item']['price']['default']) * o['Aantal']
 
-	if werk != None:
+	if werk != []:
 		orderText += r"""
 		\feetype{Gewerkte Uren}"""
 		for w in werk:
@@ -151,10 +156,10 @@ def makeBottomText(bedrijf):
 	\vspace*{\fill}
 	\begin{center}
 		\begin{spacing}{0.5}
-		voor contact: """+bedrijf['Email']+r""" \\
 		"""+bedrijf['Website']+r""" / """+bedrijf['Straat']+r""" / """+bedrijf['Postcode']+r""" """+bedrijf['Plaats']+r""" """+bedrijf['Land']+r""" \\
 		KvK """+bedrijf['KvK']+r""" / BTW nr. """+bedrijf['BTW-nr.']+r""" \\
-		IBAN """+bedrijf['IBAN']+r""" / Bicnr. """+bedrijf['BIC']+r"""
+		IBAN """+bedrijf['IBAN']+r""" / Bicnr. """+bedrijf['BIC']+r""" \\
+		voor contact: """+bedrijf['Email']+r""" \\
 		\end{spacing}
 	\end{center}
 	\end{document}"""

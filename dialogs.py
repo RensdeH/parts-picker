@@ -22,9 +22,9 @@ class Widget(QtGui.QDialog):
 		grid.setSpacing(3)
 
 		self.edit_first = QtGui.QDoubleSpinBox()
-		self.edit_first.setSingleStep(float(0.5))
+		self.edit_first.setSingleStep(float(0.25))
 		self.edit_first.setMinimum(0)
-		self.edit_first.setDecimals(1)
+		self.edit_first.setDecimals(2)
 		self.edit_first.setFixedWidth(100)
 
 		grid.addWidget(QtGui.QLabel('Uren'), 1, 0)
@@ -54,8 +54,71 @@ class Widget(QtGui.QDialog):
 			return None
 		return dialog.return_strings()
 
+class VrijWidget(QtGui.QDialog):
+	def __init__(self, parent=None):
+		def checker(u,o,p):
+			if str(u) == '0,0':
+				return
+			if str(o) == '':
+				return
+			self.done(1)
+		super(VrijWidget,self).__init__(parent)
+
+		grid = QtGui.QGridLayout()
+		grid.setSpacing(3)
+
+		self.edit_first = QtGui.QDoubleSpinBox()
+		self.edit_first.setSingleStep(float(1))
+		self.edit_first.setMinimum(1)
+		self.edit_first.setDecimals(0)
+		self.edit_first.setValue(1)
+		self.edit_first.setFixedWidth(100)
+
+		grid.addWidget(QtGui.QLabel('Aantal'), 1, 0)
+		grid.addWidget(self.edit_first, 1, 1)
+
+		self.edit_second = QtGui.QLineEdit()
+		grid.addWidget(QtGui.QLabel('Naam'), 2, 0)
+		grid.addWidget(self.edit_second, 2, 1)
+
+		self.editPrijs = QtGui.QDoubleSpinBox()
+		self.editPrijs.setSingleStep(float(1))
+		self.editPrijs.setMinimum(0)
+		self.editPrijs.setMaximum(1000)
+		self.editPrijs.setDecimals(2)
+		self.editPrijs.setFixedWidth(100)
+
+		grid.addWidget(QtGui.QLabel('Prijs per stuk'), 3, 0)
+		grid.addWidget(self.editPrijs, 3, 1)
+
+		apply_button = QtGui.QPushButton('Toevoegen', self)
+		apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text(),self.editPrijs.text()))
+
+		grid.addWidget(apply_button, 4, 3)
+		self.setLayout(grid)
+
+		setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		self.setFixedSize(600,350)
+
+	def return_strings(self):
+		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
+		return [self.edit_first.value(), self.edit_second.text(),self.editPrijs.text()]
+
+	@staticmethod
+	def get_data(parent=None):
+		dialog = VrijWidget(parent)
+		if dialog.exec_() == 0:
+			return None
+		return dialog.return_strings()
+
 def urenDialog():
 	return Widget().get_data()  # window is value from edit field
+
+def vrijVeldDialog():
+	return VrijWidget().get_data()
+
+def errorDialog():
+	QtGui.QMessageBox.warning(None,"Geen soort gekozen",'Je hebt geen soort factuur (I,A,R,V) gekozen')
 
 def setWindowPosition(window,resize = True,ax=0,ay=0):
 	pdesk = QtGui.QDesktopWidget()
