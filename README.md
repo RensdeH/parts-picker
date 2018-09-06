@@ -10,6 +10,17 @@ Benodigde packages
 -run update.install()
 ---Directory Facturen
 ---Directory Resources/Autos
+---Directory Resources/Custom
+---Directory Resources/Custom/Images
 ---Directory Resources/Klanten
 ---run update.main()
 ---run update.makeJsonFiles()
+
+#data['Artikelen']
+#data['Werk']
+#data['Klant']
+#data['Auto']
+#data['Custom']
+#data['preCustom']
+#data['omschrijving']
+#data['SoortFactuur']

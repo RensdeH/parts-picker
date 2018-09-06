@@ -13,13 +13,12 @@ def makeJsonFiles():
 	utils.makeEmptyCompany()
 	utils.makeMockCustomer()
 	utils.makeMockAuto()
+	utils.makeCustomProducts()
 	utils.makeCounters()
 
 	data = api.getArtikels(aantal = 10,silent=True)
 	data2 = data[0:10]
 	utils.makeMockOrder(data2)
-
-#makeJsonFiles()
 
 def downloadImage(item):
 	size = 100,100
@@ -60,6 +59,8 @@ def install():
 		os.makedirs('Resources/Klanten/')
 	if not os.path.exists('Resources/Autos/'):
 		os.makedirs('Resources/Autos/')
+	if not os.path.exists('Resources/Custom/'):
+		os.makedirs('Resources/Custom/')
 	makeJsonFiles()
 	main()
 

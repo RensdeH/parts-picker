@@ -48,6 +48,8 @@ def makeFactuur(data,voorbeeld):
 
 def makeTex(data):
 	order = data['Artikelen']
+	preCustom = data['preCustom']
+	custom = data['Custom']
 	werk = data['Werk']
 	klant = data['Klant']
 	bedrijfsinfo = data['bedrijf']
@@ -60,7 +62,7 @@ def makeTex(data):
 	latexCode = ""
 	latexCode += makeStartText()
 	latexCode += makeTopText(klant,factuurNummer,omschrijving)
-	latexCode += makeOrderText(order,werk,auto)
+	latexCode += makeOrderText(order,werk,auto,preCustom,custom)
 	latexCode += makeBottomText(bedrijfsinfo)
 	return latexCode
 
@@ -106,7 +108,7 @@ def makeTopText(klant,factuurnummer, omschrijving):
 	\renewcommand{\arraystretch}{0.9}"""
 	return topText
 
-def makeOrderText(order,werk,auto):
+def makeOrderText(order,werk,auto,preCustom,custom):
 	btwhoog = 0
 	uitbtwhoog = 0
 	uitbtwgeen = 0
@@ -122,6 +124,20 @@ def makeOrderText(order,werk,auto):
 			uitbtwhoog += float(o['item']['price']['default']) * o['Aantal']
 		elif float(o['item']['tax']) == 0:
 			uitbtwgeen += float(o['item']['price']['default']) * o['Aantal']
+
+	for o in preCustom:
+		orderText += '\unitrow{'+o['item']['name']+'}{'+str(o['Aantal'])+'}{'+o['item']['Prijs']+'}{}'
+		if float(o['item']['tax']) == 21:
+			uitbtwhoog += float(o['item']['Prijs']) * o['Aantal']
+		elif float(o['item']['tax']) == 0:
+			uitbtwgeen += float(o['item']['Prijs']) * o['Aantal']
+
+	for o in custom:
+		orderText += '\unitrow{'+o[1]+'}{'+str(o[0])+'}{'+str(o[2])+'}{}'
+		if o[3] == 21:
+			uitbtwhoog += float(o[2]) * o[0]
+		elif o[3] == 0:
+			uitbtwgeen += float(o[2]) * o[0]
 
 	if werk != []:
 		orderText += r"""

@@ -8,9 +8,9 @@ from enum import Enum
 #custom imports not allowed
 
 class SoortFactuur(Enum):
-	Inkoop = 1
-	Verkoop = 2
-	Reparatie = 3
+	Reparatie = 1
+	Inkoop = 2
+	Verkoop = 3
 	Artikelen = 4
 
 def clean(name):
@@ -145,19 +145,44 @@ def makeEmptyAuto():
 
 def makeCustomProducts():
 	data = []
-	olie = {}
-	olie['Prijs'] = '17.35'
-	olie['Aantal'] = '3.8'
-	olie['Naam'] = 'Motorolie 10W40'
-	olie['id'] = 'olie'
-	olie['name'] = 'Motorolie 10W40'
-	data.append(olie)
+	olieNAB = {}
+	olieNAB['Prijs'] = '17.35'
+	olieNAB['Aantal'] = '3.8'
+	olieNAB['Naam'] = '3.8L Motorolie 10W40'
+	olieNAB['id'] = 'olienab'
+	olieNAB['name'] = '3.8L Motorolie 10W40'
+	olieNAB['tax'] = 21
+	data.append(olieNAB)
+	olieNC = {}
+	olieNC['Prijs'] = '17.70'
+	olieNC['Aantal'] = '4.45'
+	olieNC['Naam'] = '4.45L Motorolie 15W30'
+	olieNC['id'] = 'olienc'
+	olieNC['name'] = '4.45L Motorolie 15W30'
+	olieNC['tax'] = 21
+	data.append(olieNC)
+	APK = {}
+	APK['Prijs'] = '75'
+	APK['Aantal'] = '1'
+	APK['Naam'] = 'APK'
+	APK['id'] = 'apk'
+	APK['name'] = 'APK'
+	APK['tax'] = 21
+	data.append(APK)
+	leenAuto = {}
+	leenAuto['Prijs'] = '12.50'
+	leenAuto['Aantal'] = '1'
+	leenAuto['Naam'] = 'Leenauto'
+	leenAuto['id'] = 'leenauto'
+	leenAuto['name'] = 'Leenauto'
+	leenAuto['tax'] = 0
+	data.append(leenAuto)
 	writeJson('Resources/Custom/custom.json',data)
 
 def makeCounters():
 	#TODO check if file is correct
-	if not os.path.isfile('Resources/counters.json'):
-		return
+	#if not os.path.isfile('Resources/counters.json'):
+	#	return
 	data = {}
 	data['C'] = 100
 	data['R'] = 300
@@ -167,3 +192,4 @@ def makeCounters():
 	data['year'] = 2018
 	writeJson('Resources/counters.json',data)
 	return data
+makeCustomProducts()

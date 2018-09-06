@@ -1,25 +1,31 @@
-import dialogs
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
 import utils
+#pointer naar factuur.data voor debuggen
 data = None
 
 class Window(QtGui.QWidget):
-
 	def __init__(self,Titel, parent=None):
 		super(Window,self).__init__(parent)
-		dialogs.setWindowPosition(self) #TODO evt. naar hier halen
+		self.setWindowPosition(self)
 		self.volgendeView = self.volgendeButton()
 		self.vorigeView = self.vorigeButton()
 		self.totalLayout = QtGui.QHBoxLayout()
 		self.previous = None
 		self.next = None
 		self.rebuild = None
-
+		self.opslaan = None
 		self.totalLayout.setAlignment(Qt.AlignTop)
 		self.setWindowTitle("MX5-factuur \'"+Titel+"'\'")
 		self.setLayout(self.totalLayout)
+
+	def setWindowPosition(window,resize = True,ax=0,ay=0):
+		pdesk = QtGui.QDesktopWidget()
+		rect = pdesk.screenGeometry(pdesk.primaryScreen())
+		window.move(rect.left()+ax,rect.top()+ay)
+		if resize:
+			window.resize(rect.width(),rect.height())
 
 	def vorigeButton(self):
 		vorigeView = QtGui.QPushButton()
@@ -45,11 +51,13 @@ class Window(QtGui.QWidget):
 	def setRebuild(self,rebuild):
 		self.rebuild = rebuild
 
+	def setOpslaan(self,opslaan):
+		self.opslaan = opslaan
+
 	def setPreviousView(self,window):
 		self.previous = window
 
-	def setNextView(self,window,opslaan= None):
-		self.opslaan = opslaan
+	def setNextView(self,window):
 		self.next = window
 
 	def nextView(self):

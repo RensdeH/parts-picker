@@ -30,19 +30,10 @@ werkLayout = QtGui.QGridLayout()
 vrijVeldLayout = QtGui.QGridLayout()
 orderDisplay = QtGui.QLabel()
 tabs = QtGui.QTabWidget()
+
 tablist = []
-
-# global data -Minimize this!
-data = {} #factuur data (order, auto, Uren(aantal,omschrijving),klant,soort)
-#data['Artikelen']
-#data['Werk']
-#data['Klant']
-#data['Auto']
-#data['Custom']
-#data['preCustom']
-#data['omschrijving']
-#data['SoortFactuur']
-
+productenLijst = []
+data = {}
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
 
@@ -58,14 +49,14 @@ def main():
 	app.setWindowIcon(QtGui.QIcon('Resources/icon.png'))
 	n2 = dt.datetime.now()
 	print("Declaring:"+str((n2-n1).total_seconds()))
-	lijst = loadArtikels()
+	productenLijst.extend(loadArtikels())
 	data['Artikelen'] = []
 	data['Werk'] = []
 	data['Custom'] = []
 	data['preCustom'] = []
 	n3 = dt.datetime.now()
 	print("Get artikelen:"+str((n3-n2).total_seconds()))
-	Cids.update(defineTabs(lijst))
+	Cids.update(defineTabs(productenLijst))
 	n4 = dt.datetime.now()
 	print("Define Tabs:"+str((n4-n3).total_seconds()))
 	fillTabs(Cids)
@@ -75,6 +66,7 @@ def main():
 	customerWindowSetup()
 	vrijveldWindowSetup()
 	urenWindowSetup()
+	setVolgorde([customerWindow,productWindow,vrijveldWindow,urenWindow])
 	n6 = dt.datetime.now()
 	print("Windows Setup:"+str((n6-n5).total_seconds()))
 	customerWindow.show()
@@ -198,9 +190,8 @@ def urenWindowSetup():
 	urenWindow.totalLayout.insertLayout(1,leftLayout)
 	urenWindow.totalLayout.insertLayout(2,rightLayout)
 
-	urenWindow.setNextView(None,opslaan = lambda : saveAuto(rightLayout,False))
+	urenWindow.setOpslaan(lambda : saveAuto(rightLayout,False))
 	urenWindow.volgendeView.setText("Definitieve Factuur")
-	urenWindow.setPreviousView(vrijveldWindow)
 
 	werkLayout.setAlignment(Qt.AlignTop)
 
@@ -234,8 +225,6 @@ def productWindowSetup():
 
 	tabs.setFocusPolicy(Qt.NoFocus)
 
-	productWindow.setNextView(vrijveldWindow)
-	productWindow.setPreviousView(customerWindow)
 	productWindow.totalLayout.addLayout(leftLayout,3)
 	productWindow.totalLayout.addLayout(rightlayout,1)
 
@@ -345,21 +334,15 @@ def vrijveldWindowSetup():
 	rightLayout.addWidget(vrijveldWindow.volgendeView,1)
 
 	vrijVeldLayout.setAlignment(Qt.AlignTop)
-	vrijveldWindow.setNextView(urenWindow)
-	vrijveldWindow.setPreviousView(productWindow)
 
 	vrijveldWindow.totalLayout.addLayout(leftLayout,1)
 	vrijveldWindow.totalLayout.addLayout(rightLayout,1)
 
 def customerWindowSetup():
-	def setSoort(s):
-		data['soortFactuur'] = s
-
 	def makeFactuur(rightLayout,omsLine):
 		customerEdit = rightLayout.itemAt(1)
 		data['Klant'] = dialogs.getJsonLayout(customerEdit)
 		data['Omschrijving'] = str(omsLine.text())
-		#latexfact.startFactuur(data)
 
 	def kiesKlant(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Klanten')
@@ -372,31 +355,6 @@ def customerWindowSetup():
 			notNeeded = l.takeAt(i).widget().setParent(None)
 		layout.insertLayout(1,custEdit)
 
-	def rebuildOrderDisplay():
-		s = ''
-		for o in data['Artikelen']:
-			try:
-				s += str(o['Aantal']) + ' x ' + utils.clean(o['item']['name']) + '\n'
-			except:
-				s += "\n"
-		if data['Artikelen'] == []:
-			s = 'Geen producten gekozen'
-		orderDisplay.setText(s)
-
-	def predictSoort(buttons):
-		buttons[1].toggle()
-		if data['Auto']['Prijs']<0:
-			buttons[0].toggle()
-			return
-		if data['Auto']['Model'] is not '':
-			buttons[1].toggle()
-			return
-		if data['Werk'] is not []:
-			buttons[2].toggle()
-			return
-		buttons[3].toggle()
-
-	leftLayout = QtGui.QVBoxLayout()
 	rightLayout = QtGui.QVBoxLayout()
 
 	emptyKlant = utils.readJson('Resources/emptyCustomer.json')
@@ -414,10 +372,10 @@ def customerWindowSetup():
 	buttons = []
 	for en in utils.SoortFactuur:
 		b1 = QtGui.QRadioButton(en.name)
-		b1.clicked.connect(lambda s, so = en : setSoort(so))
+		b1.clicked.connect(lambda s, so = en : data.update({'soortFactuur': so}))
 		buttonLayout.addWidget(b1)
 		buttons.append(b1)
-	#predictSoort(buttons)
+	buttons[0].click()
 
 	omsLayout = QtGui.QHBoxLayout()
 	omsLabel = QtGui.QLabel("Omschrijving")
@@ -425,25 +383,23 @@ def customerWindowSetup():
 	omsLayout.addWidget(omsLabel)
 	omsLayout.addWidget(omsLine)
 
-	orderDisplay.setAlignment(Qt.AlignTop)
-	orderDisplay.setWordWrap(True)
-
-	#leftLayout.addWidget(customerWindow.vorigeView,1)
-	leftLayout.addWidget(orderDisplay,5)
-
 	rightLayout.addWidget(bestaandeKlantKiezen)
 	rightLayout.addLayout(customerEdit)
+	rightLayout.addStretch()
 	rightLayout.addLayout(buttonLayout)
 	rightLayout.addLayout(omsLayout)
 	rightLayout.addWidget(customerWindow.volgendeView)
 
-	customerWindow.setNextView(productWindow,opslaan = lambda : makeFactuur(rightLayout,omsLine))
-	customerWindow.setPreviousView(customerWindow)
+	customerWindow.setOpslaan(lambda : makeFactuur(rightLayout,omsLine))
 
-	customerWindow.setRebuild(rebuildOrderDisplay)
-
-	customerWindow.totalLayout.addLayout(leftLayout,1)
 	customerWindow.totalLayout.addLayout(rightLayout,5)
+
+def setVolgorde(volgorde):
+	volgorde[0].setNextView(volgorde[1])
+	for x in range(1,len(volgorde)-1):
+		volgorde[x].setPreviousView(volgorde[x-1])
+		volgorde[x].setNextView(volgorde[x+1])
+	volgorde[-1].setPreviousView(volgorde[-2])
 
 #############################################################
 #-------------------------Zoeken-----------------------------
@@ -461,14 +417,21 @@ def searchTab():
 	activeScroll = activeTab.currentWidget()
 	activeCatId = activeScroll.whatsThis()
 
-	lijst = Cids[str(activeCatId)]
-	text, ok = QtGui.QInputDialog.getText(productWindow,"Zoeken","Zoeken in:" + str(activeCatName))
-	if not ok:
+	#lijst = Cids[str(activeCatId)]
+	#text, ok = QtGui.QInputDialog.getText(productWindow,"Zoeken","Zoeken in:" + str(activeCatName))
+	zoekJob = dialogs.zoekDialog()
+	if zoekJob is None:
 		return
-	text = str(text).lower()
+	text = str(zoekJob[0]).lower()
+	zoekAlles = zoekJob[1]
+
+	if zoekJob[1]:
+		zoekLijst = productenLijst
+	else:
+		zoekLijst = Cids[str(activeCatId)]
 
 	results = []
-	for item in lijst:
+	for item in zoekLijst:
 		if text in item['name'].lower() or text in item['description'].lower():
 			results.append(item)
 
@@ -498,7 +461,7 @@ def previousTab(tab, pos,name, catId):
 	scroll = makeTab(catId)
 	makeGrid(Cids[str(catId)],scroll,None)
 
-	sluitZoeken(scroll,tab,pos,catNames[str(catId)])
+	sluitZoeken(scroll,tab,pos,name)
 	print(len(app.allWidgets()))
 
 def sluitZoeken(scrollArea,tab,pos,name):
@@ -580,19 +543,14 @@ def colorTabs(tabWid,color,depth):
 	blue = color.blue()
 	for x in range(length):
 		binaryTab = "00000"+"{0:b}".format(x+1)
-		print(binaryTab)
 		newRed = red+(binaryTab[-1]=='1')*(256/(2**depth))
 		newGreen = green+(binaryTab[-2]=='1')*(256/(2**depth))
 		newBlue = blue+(binaryTab[-3]=='1')*(256/(2**depth))
-		print(newRed)
-		print(newGreen)
-		print(newBlue)
 		newColor = QtGui.QColor(newRed,newGreen,newBlue)
 		newColor2 = QtGui.QColor(2*newRed/3,2*newGreen/3,2*newBlue/3)
 		tabWid.tabBar().setTabTextColor(x,newColor2)
 		if type(tabWid.widget(x)) is QtGui.QTabWidget:
 			colorTabs(tabWid.widget(x),newColor,depth+1)
-
 
 ###############################################################
 #----------------------------Single Tab------------------------
@@ -622,13 +580,13 @@ def makeGrid2(lijst,scroll,button):
 		buttons.append((b,l))
 
 	l = len(buttons)
-	itemsPerKolom = int(l / ITEMS_PER_RIJ) + 1
+	itemsPerKolom = int(l / 3) + 1
 	for j in range(itemsPerKolom):
-		for i in range(ITEMS_PER_RIJ):
-			if ITEMS_PER_RIJ * j + i > l - 1:
+		for i in range(3):
+			if 3 * j + i > l - 1:
 				return
-			grid.addWidget(buttons[ITEMS_PER_RIJ * j + i][0], j, 2 * i)
-			grid.addWidget(buttons[ITEMS_PER_RIJ * j + i][1], j, 2 * i + 1)
+			grid.addWidget(buttons[3 * j + i][0], j, 2 * i)
+			grid.addWidget(buttons[3 * j + i][1], j, 2 * i + 1)
 
 ###############################################################
 #------------------------Single Button-------------------------
@@ -636,7 +594,7 @@ def makeGrid2(lijst,scroll,button):
 
 def makeButton2(item):
 	def getImageUrl(item):
-		iurl = 'Images/' + str(item['id']) + '.jpeg'
+		iurl = 'Resources/Custom/Images/' + str(item['id']) + '.jpg'
 		if os.path.isfile(iurl):
 			return iurl
 		else:

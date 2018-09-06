@@ -2,6 +2,7 @@ import os.path
 import json
 import sys
 import utils
+import windowClass
 
 from collections import OrderedDict
 
@@ -40,7 +41,7 @@ class Widget(QtGui.QDialog):
 		grid.addWidget(apply_button, 4, 3)
 		self.setLayout(grid)
 
-		setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
 		self.setFixedSize(600,350)
 
 	def return_strings(self):
@@ -56,12 +57,15 @@ class Widget(QtGui.QDialog):
 
 class VrijWidget(QtGui.QDialog):
 	def __init__(self, parent=None):
-		def checker(u,o,p):
+		def checker(u,o):
 			if str(u) == '0,0':
 				return
 			if str(o) == '':
 				return
 			self.done(1)
+
+		def setTax(tax):
+			self.tax = tax
 		super(VrijWidget,self).__init__(parent)
 
 		grid = QtGui.QGridLayout()
@@ -90,23 +94,74 @@ class VrijWidget(QtGui.QDialog):
 
 		grid.addWidget(QtGui.QLabel('Prijs per stuk'), 3, 0)
 		grid.addWidget(self.editPrijs, 3, 1)
+		self.tax = 0
+		self.tax0 = QtGui.QRadioButton('BTW margeregeling')
+		self.tax21 = QtGui.QRadioButton('BTW 21%')
+		self.tax0.clicked.connect(lambda s : setTax(0))
+		self.tax21.clicked.connect(lambda s : setTax(21))
+
+		self.tax0.toggle()
+
+		grid.addWidget(self.tax0,4,0)
+		grid.addWidget(self.tax21,4,1)
 
 		apply_button = QtGui.QPushButton('Toevoegen', self)
-		apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text(),self.editPrijs.text()))
+		apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text()))
 
-		grid.addWidget(apply_button, 4, 3)
+		grid.addWidget(apply_button, 5, 3)
 		self.setLayout(grid)
 
-		setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
 		self.setFixedSize(600,350)
 
 	def return_strings(self):
 		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
-		return [self.edit_first.value(), self.edit_second.text(),self.editPrijs.text()]
+		print(self.tax)
+		return [self.edit_first.value(), self.edit_second.text(),float(self.editPrijs.value()),self.tax]
 
 	@staticmethod
 	def get_data(parent=None):
 		dialog = VrijWidget(parent)
+		if dialog.exec_() == 0:
+			return None
+		return dialog.return_strings()
+
+class SearchDialog(QtGui.QDialog):
+	def __init__(self, parent=None):
+		def checker(z):
+			if z!='':
+				self.done(1)
+			return
+		super(SearchDialog,self).__init__(parent)
+
+		totalLayout = QtGui.QVBoxLayout()
+		topLayout = QtGui.QVBoxLayout()
+		bottomLayout = QtGui.QVBoxLayout()
+
+		self.zoekNaar = QtGui.QLabel('Zoeken naar:')
+		self.editZoekNaar = QtGui.QLineEdit()
+		topLayout.addWidget(self.zoekNaar)
+		topLayout.addWidget(self.editZoekNaar)
+
+		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen')
+		zoeken = QtGui.QPushButton('Zoeken', self)
+		zoeken.clicked.connect(lambda : checker(self.zoekNaar.text()))
+		bottomLayout.addWidget(self.zoekAlles)
+		bottomLayout.addWidget(zoeken)
+		totalLayout.addLayout(topLayout)
+		totalLayout.addLayout(bottomLayout)
+		self.setLayout(totalLayout)
+
+		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		self.setFixedSize(600,350)
+
+	def return_strings(self):
+		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
+		return [self.editZoekNaar.text(), self.zoekAlles.isChecked()]
+
+	@staticmethod
+	def get_data(parent=None):
+		dialog = SearchDialog(parent)
 		if dialog.exec_() == 0:
 			return None
 		return dialog.return_strings()
@@ -117,15 +172,11 @@ def urenDialog():
 def vrijVeldDialog():
 	return VrijWidget().get_data()
 
+def zoekDialog():
+	return SearchDialog().get_data()
+
 def errorDialog():
 	QtGui.QMessageBox.warning(None,"Geen soort gekozen",'Je hebt geen soort factuur (I,A,R,V) gekozen')
-
-def setWindowPosition(window,resize = True,ax=0,ay=0):
-	pdesk = QtGui.QDesktopWidget()
-	rect = pdesk.screenGeometry(pdesk.primaryScreen())
-	window.move(rect.left()+ax,rect.top()+ay)
-	if resize:
-		window.resize(rect.width(),rect.height())
 
 def controleerJsonLayout(data):
 	layout = QtGui.QFormLayout()
