@@ -20,15 +20,17 @@ def factuurFromData(data):
 	startFactuur(data)
 
 def startFactuur(data,voorbeeld):
-	data['bedrijf'] = standardBedrijfInfo()
-	makeFactuur(data,voorbeeld)
-
-def makeFactuur(data,voorbeeld):
 	if 'soortFactuur' not in data:
 		dialogs.errorDialog()
 		return
+	if not voorbeeld:
+		utils.writeJson('Resources/Klanten/'+data['Klant']['Naam']+'.json',data['Klant'])
+	makeFactuur(data,voorbeeld)
+
+def makeFactuur(data,voorbeeld):
 	factuurNummer = getFactuurNummer(data['soortFactuur'],voorbeeld)
 	data['FactuurNummer'] = factuurNummer
+	data['bedrijf'] = standardBedrijfInfo()
 	workingDir = 'Invoice/'
 	filename = factuurNummer + '.tex'
 	pdffilename = factuurNummer + '.pdf'
@@ -71,10 +73,9 @@ def getFactuurNummer(soort,voorbeeld):
 def getCounter(S,voorbeeld):
 	counters = utils.readJson('Resources/counters.json')
 	c = counters[S] + 1
-	if voorbeeld:
-		return c
-	counters[S] = c
-	utils.writeJson('Resources/counters.json',counters)
+	if not voorbeeld:
+		counters[S] = c
+		utils.writeJson('Resources/counters.json',counters)
 	return c
 
 def makeStartText():

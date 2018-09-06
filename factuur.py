@@ -4,6 +4,7 @@ n1 = dt.datetime.now()
 import sys
 import requests
 import os.path
+import itertools
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
@@ -258,7 +259,6 @@ def addCustomProduct(product):
 def removePreCustom(product):
 	data['preCustom'].remove(product)
 	rebuildVrijVeldWindow()
-
 
 def removeVrijVeld(product):
 	data['Custom'].remove(product)
@@ -540,15 +540,18 @@ def loopCats(c,ids,prefix,parentTab,lijst):
 
 	if childContainsItems:
 		parentTab.addTab(currentTab,"s: "+ utils.clean(c['title']))
+		#currentTab.parent().parent().tabBar().setTabTextColor(0,QtGui.QColor(255,len(tablist)*5,0))
 		if containsItems:
 			defaultTab = makeTab(c['id'])
 			tablist.append((c['id'],defaultTab))
 			currentTab.insertTab(0,defaultTab,"d: "+ utils.clean(c['title']))
+			#defaultTab.parent().parent().tabBar().setTabTextColor(0,QtGui.QColor(255,len(tablist)*5,0))
 			catNames[str(c['id'])] = c['title']
 	elif containsItems:
 		leafTab = makeTab(c['id'])
 		tablist.append((c['id'],leafTab))
 		parentTab.addTab(leafTab,"l: "+utils.clean(c['title']))
+		#leafTab.parent().parent().tabBar().setTabTextColor(0,QtGui.QColor(255,len(tablist)*5,0))
 		catNames[str(c['id'])] = c['title']
 
 	return childContainsItems or containsItems
@@ -558,6 +561,38 @@ def fillTabs(cids):
 		os.makedirs('Images/')
 	for t in tablist:
 		makeGrid(cids[str(t[0])],t[1],None)
+	colorTabs(tabs,QtGui.QColor(0,0,0),1)
+		#tabw = t[1].parent().parent().tabBar()
+		#length = tabw.count()
+		#for x in range(0,length):
+		#	tabw.setTabTextColor(x,QtGui.QColor(255-x*50,x*50,0))
+		#print(type(tabw))
+		#pal = tabw.palette()
+		#pal.setColor(QtGui.QPalette.Button,QtGui.QColor(0,0,255))
+		#tabw.setPalette(pal)
+		#tabw.setBackgroundRole(palette.Dark)
+		#t[1].parent().setStyleSheet("background-color: yellow");
+
+def colorTabs(tabWid,color,depth):
+	length = tabWid.count()
+	red = color.red()
+	green = color.green()
+	blue = color.blue()
+	for x in range(length):
+		binaryTab = "00000"+"{0:b}".format(x+1)
+		print(binaryTab)
+		newRed = red+(binaryTab[-1]=='1')*(256/(2**depth))
+		newGreen = green+(binaryTab[-2]=='1')*(256/(2**depth))
+		newBlue = blue+(binaryTab[-3]=='1')*(256/(2**depth))
+		print(newRed)
+		print(newGreen)
+		print(newBlue)
+		newColor = QtGui.QColor(newRed,newGreen,newBlue)
+		newColor2 = QtGui.QColor(2*newRed/3,2*newGreen/3,2*newBlue/3)
+		tabWid.tabBar().setTabTextColor(x,newColor2)
+		if type(tabWid.widget(x)) is QtGui.QTabWidget:
+			colorTabs(tabWid.widget(x),newColor,depth+1)
+
 
 ###############################################################
 #----------------------------Single Tab------------------------
@@ -618,7 +653,6 @@ def makeButton2(item):
 	b1.setStyleSheet("border: none;")
 	b1.setIconSize(QSize(100,100))
 	return b1
-
 
 def makeGrid(lijst,scroll,button):
 	grid = scroll.widget().layout()
