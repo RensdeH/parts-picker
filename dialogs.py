@@ -12,10 +12,17 @@ from PyQt4.QtCore import *
 class baseDialog(QtGui.QDialog):
 	def __init__(self,parent=None):
 		super(baseDialog,self).__init__(parent)
-		self.totalLayout = QtGui.QVBoxLayout()
+		self.totalLayout = QtGui.QFormLayout()
 		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		self.setFixedSize(600,350)
 		self.returnList = []
 		self.setLayout(self.totalLayout)
+		self.applyButton = self.apply_button()
+
+	def apply_button(self):
+		apply_button = QtGui.QPushButton('GA', self)
+		apply_button.clicked.connect(lambda : self.validate(self.returnList))
+		return apply_button
 
 	def return_strings(self):
 		lijst = []
@@ -23,28 +30,18 @@ class baseDialog(QtGui.QDialog):
 			lijst.append(x())
 		return lijst
 
-	@staticmethod
-	def getData(dialog):
-		dialog.deleteLater()
-		if dialog.exec_() == 0:
+	def getData(self):
+		self.deleteLater()
+		if self.exec_() == 0:
 			return None
-		return dialog.return_strings()
+		return self.return_strings()
 
-	def validate():
+	def validate(self,list):
 		self.done(1)
 
 class UrenDialog(baseDialog):
 	def __init__(self, parent=None):
-		def validate(u,o):
-			if str(u) == '0,0':
-				return
-			if str(o) == '':
-				return
-			self.done(1)
 		super(UrenDialog,self).__init__(parent)
-
-		grid = QtGui.QGridLayout()
-		grid.setSpacing(3)
 
 		self.edit_first = QtGui.QDoubleSpinBox()
 		self.edit_first.setSingleStep(float(0.25))
@@ -52,42 +49,24 @@ class UrenDialog(baseDialog):
 		self.edit_first.setDecimals(2)
 		self.edit_first.setFixedWidth(100)
 
-		grid.addWidget(QtGui.QLabel('Uren'), 1, 0)
-		grid.addWidget(self.edit_first, 1, 1)
+		self.totalLayout.addRow(QtGui.QLabel('Uren'),self.edit_first)
 
 		self.edit_second = QtGui.QLineEdit()
-		grid.addWidget(QtGui.QLabel('Omschrijving'), 2, 0)
-		grid.addWidget(self.edit_second, 2, 1)
+		self.totalLayout.addRow(QtGui.QLabel('Omschrijving'),self.edit_second)
+		self.totalLayout.addRow(self.applyButton)
 
-		apply_button = QtGui.QPushButton('Toevoegen', self)
-		apply_button.clicked.connect(lambda : validate(self.edit_first.text(),self.edit_second.text()))
-
-		grid.addWidget(apply_button, 4, 3)
-		self.totalLayout.addLayout(grid)
-
-		self.setFixedSize(600,350)
 		self.returnList.append(self.edit_first.value)
 		self.returnList.append(self.edit_second.text)
 
 	@staticmethod
 	def get_data():
-		return SearchDialog.getData(UrenDialog())
+		return UrenDialog().getData()
 
-class VrijWidget(QtGui.QDialog):
+class VrijVeldDialog(baseDialog):
 	def __init__(self, parent=None):
-		def checker(u,o):
-			if str(u) == '0,0':
-				return
-			if str(o) == '':
-				return
-			self.done(1)
-
 		def setTax(tax):
 			self.tax = tax
-		super(VrijWidget,self).__init__(parent)
-
-		grid = QtGui.QGridLayout()
-		grid.setSpacing(3)
+		super(VrijVeldDialog,self).__init__(parent)
 
 		self.edit_first = QtGui.QDoubleSpinBox(parent = self)
 		self.edit_first.setSingleStep(float(1))
@@ -96,12 +75,11 @@ class VrijWidget(QtGui.QDialog):
 		self.edit_first.setValue(1)
 		self.edit_first.setFixedWidth(100)
 
-		grid.addWidget(QtGui.QLabel('Aantal',parent = self), 1, 0)
-		grid.addWidget(self.edit_first, 1, 1)
+		self.totalLayout.addRow(QtGui.QLabel('Aantal'),self.edit_first)
 
 		self.edit_second = QtGui.QLineEdit(parent = self)
-		grid.addWidget(QtGui.QLabel('Naam',parent = self), 2, 0)
-		grid.addWidget(self.edit_second, 2, 1)
+
+		self.totalLayout.addRow(QtGui.QLabel('Naam'),self.edit_second)
 
 		self.editPrijs = QtGui.QDoubleSpinBox(parent = self)
 		self.editPrijs.setSingleStep(float(1))
@@ -110,8 +88,8 @@ class VrijWidget(QtGui.QDialog):
 		self.editPrijs.setDecimals(2)
 		self.editPrijs.setFixedWidth(100)
 
-		grid.addWidget(QtGui.QLabel('Prijs per stuk',parent = self), 3, 0)
-		grid.addWidget(self.editPrijs, 3, 1)
+		self.totalLayout.addRow(QtGui.QLabel('Prijs per stuk'),self.editPrijs)
+
 		self.tax = 0
 		self.tax0 = QtGui.QRadioButton('BTW margeregeling',parent=self)
 		self.tax21 = QtGui.QRadioButton('BTW 21%',parent=self)
@@ -120,29 +98,20 @@ class VrijWidget(QtGui.QDialog):
 
 		self.tax0.toggle()
 
-		grid.addWidget(self.tax0,4,0)
-		grid.addWidget(self.tax21,4,1)
+		self.totalLayout.addRow(self.tax0,self.tax21)
+		self.totalLayout.addRow(self.applyButton)
 
-		apply_button = QtGui.QPushButton('Toevoegen', self)
-		apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text()))
+		self.returnList.append(self.edit_first.value)
+		self.returnList.append(self.edit_second.text)
+		self.returnList.append(self.editPrijs.value)
+		self.returnList.append(self.getTax)
 
-		grid.addWidget(apply_button, 5, 3)
-		self.setLayout(grid)
-
-		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
-		self.setFixedSize(600,350)
-
-	def return_strings(self):
-		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
-		return [self.edit_first.value(), self.edit_second.text(),float(self.editPrijs.value()),self.tax]
+	def getTax(self):
+		return self.tax
 
 	@staticmethod
-	def get_data(parent=None):
-		dialog = VrijWidget(parent)
-		dialog.deleteLater()
-		if dialog.exec_() == 0:
-			return None
-		return dialog.return_strings()
+	def get_data():
+		return VrijVeldDialog().getData()
 
 class SearchDialog(baseDialog):
 	def __init__(self, parent=None):
@@ -151,39 +120,27 @@ class SearchDialog(baseDialog):
 				self.done(1)
 		super(SearchDialog,self).__init__(parent)
 
-		#totalLayout = QtGui.QVBoxLayout()
-		topLayout = QtGui.QHBoxLayout()
-		bottomLayout = QtGui.QHBoxLayout()
-
 		self.zoekNaar = QtGui.QLabel('Zoeken naar:',parent=self)
 		self.editZoekNaar = QtGui.QLineEdit(parent=self)
-		topLayout.addWidget(self.zoekNaar)
-		topLayout.addWidget(self.editZoekNaar)
 
 		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen',parent=self)
 		self.zoekAlles.click()
-		zoeken = QtGui.QPushButton('Zoeken', self)
-		zoeken.clicked.connect(lambda : validate(self.zoekNaar.text()))
-		bottomLayout.addWidget(self.zoekAlles)
-		bottomLayout.addWidget(zoeken)
-		self.totalLayout.addLayout(topLayout)
-		self.totalLayout.addLayout(bottomLayout)
 
-		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
-		self.setFixedSize(600,350)
+		self.totalLayout.addRow(self.zoekNaar,self.editZoekNaar)
+		self.totalLayout.addRow(self.zoekAlles,self.applyButton)
 
 		self.returnList.append(self.editZoekNaar.text)
 		self.returnList.append(self.zoekAlles.isChecked)
 
 	@staticmethod
 	def get_data():
-		return SearchDialog.getData(SearchDialog())
+		return SearchDialog().getData()
 
 def urenDialog():
 	return UrenDialog.get_data()  # window is value from edit field
 
 def vrijVeldDialog():
-	return VrijWidget.get_data()
+	return VrijVeldDialog.get_data()
 
 def zoekDialog():
 	return SearchDialog.get_data()
@@ -207,21 +164,3 @@ def getJsonLayout(formLayout):
 		rowField = formLayout.itemAt(x,QtGui.QFormLayout.FieldRole)
 		data[str(rowLabel.widget().text())] = str(rowField.widget().text())
 	return data
-
-def controlJsonDialog(filename):
-	data = utils.readJson(filename)
-	if not data:
-		return
-
-	dialog = QtGui.QDialog()
-	layout = controleerJsonLayout(data)
-	layout.setParent(dialog)
-	#add button to layout to confirm and save
-	dialog.exec_()
-
-def controlJsonApp(filename):
-	app = QtGui.QApplication(sys.argv)
-	w = QtGui.QWidget()
-	w.show()
-	controlJsonDialog(filename)
-	sys.exit(app.exec_())
