@@ -24,9 +24,9 @@
 
 \ProvidesClass{invoice}
 
-\LoadClass[10pt]{article}
+\LoadClass[12pt]{extarticle}
 
-\usepackage[letterpaper,hmargin=0.79in,vmargin=0.79in]{geometry}
+\usepackage[letterpaper,hmargin=0.79in,vmargin=0.4in]{geometry}
 \usepackage[parfill]{parskip} % Do not indent paragraphs
 \usepackage{fp} % Fixed-point arithmetic
 \usepackage{calc} % Counters for totaling hours and cost

@@ -145,6 +145,7 @@ class SearchDialog(QtGui.QDialog):
 		topLayout.addWidget(self.editZoekNaar)
 
 		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen',parent=self)
+		self.zoekAlles.click()
 		zoeken = QtGui.QPushButton('Zoeken', self)
 		zoeken.clicked.connect(lambda : checker(self.zoekNaar.text()))
 		bottomLayout.addWidget(self.zoekAlles)

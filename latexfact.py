@@ -16,37 +16,46 @@ def mockfact():
 	soort = utils.SoortFactuur.Reparatie
 	omschrijving = 'Mock Factuur'
 
-def factuurFromData(data):
-	startFactuur(data)
-
-def startFactuur(data,voorbeeld):
+def startFactuur(data,voorbeeld,raming = False):
 	if 'soortFactuur' not in data:
 		dialogs.errorDialog()
 		return
 	if not voorbeeld:
 		utils.writeJson('Resources/Klanten/'+data['Klant']['Naam']+'.json',data['Klant'])
-	makeFactuur(data,voorbeeld)
+	makeFactuur(data,voorbeeld,raming)
 
-def makeFactuur(data,voorbeeld):
-	factuurNummer = getFactuurNummer(data['soortFactuur'],voorbeeld)
+def makeFactuur(data,voorbeeld,raming=False):
+	factuurNummer = getFactuurNummer(data['soortFactuur'],voorbeeld,raming)
 	data['FactuurNummer'] = factuurNummer
+	pdfNaam = data['Klant']['Naam'] + factuurNummer
 	data['bedrijf'] = standardBedrijfInfo()
+	if raming:
+		data['Omschrijving'] = 'Kostenraming'
+	else:
+		data['Omschrijving'] = 'Factuur'
 	workingDir = 'Invoice/'
-	filename = factuurNummer + '.tex'
-	pdffilename = factuurNummer + '.pdf'
+	filename = pdfNaam + '.tex'
+	pdffilename = pdfNaam + '.pdf'
 
 	file = open(workingDir + filename,'w')
-	latexCode = makeTex(data)
+	latexCode = makeTex(data,raming)
 	file.write(latexCode)
 	file.close()
 	proc = runpdflatex(filename,True,workingDir)
 	proc.wait()
 	shutil.move(workingDir + filename,'Facturen/' + filename)
-	shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)
+	if voorbeeld:
+		shutil.move(workingDir + pdffilename,'Temp/' + pdffilename)
+	else:
+		shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)
+		shutil.copy('Facturen/' + pdffilename,'/home/chris/Dropbox/B. MX5-Winkel administratie/MX5Winkel' + pdffilename)
 
-	openfile(pdffilename,'Facturen/')
+	if voorbeeld:
+		openfile(pdffilename,'Temp/')
+	else:
+		openfile(pdffilename,'Facturen/')
 
-def makeTex(data):
+def makeTex(data,raming):
 	order = data['Artikelen']
 	preCustom = data['preCustom']
 	custom = data['Custom']
@@ -68,16 +77,19 @@ def makeTex(data):
 
 	latexCode = ""
 	latexCode += makeStartText()
-	latexCode += makeTopText(klant,factuurNummer,omschrijving)
+	latexCode += makeTopText(klant,factuurNummer,omschrijving,raming)
 	latexCode += makeOrderText(order,werk,auto,preCustom,custom)
 	latexCode += makeBottomText(bedrijfsinfo,betaalwijze)
 	return latexCode
 
-def getFactuurNummer(soort,voorbeeld):
-	S = soort.name[0:1] #TODO
+def getFactuurNummer(soort,voorbeeld,raming):
+	S = soort.name[0:1]
 	jaar = dt.datetime.now().year
 	counter = getCounter('C',voorbeeld)
-	return str(jaar) +'-'+ S + str(counter)
+	if raming:
+		return 'Raming-'+str(jaar) +'-'+ S + str(counter)
+	else:
+		return str(jaar) +'-'+ S + str(counter)
 
 def getCounter(S,voorbeeld):
 	counters = utils.readJson('Resources/counters.json')
@@ -90,7 +102,7 @@ def getCounter(S,voorbeeld):
 def makeStartText():
 	return utils.readfile('Invoice/top.txt')
 
-def makeTopText(klant,factuurnummer, omschrijving):
+def makeTopText(klant,factuurnummer, omschrijving,raming):
 	datumData = dt.date.today()
 	datum = datumData.strftime("%d-%m-%Y")
 	topText = r"""\begin{tabular}[t]{l@{}}
@@ -105,10 +117,21 @@ def makeTopText(klant,factuurnummer, omschrijving):
 	\hfill
 
 	\begin{tabular}[t]{l@{}}
-     	"""+omschrijving+r"""\\
-     	Kenteken: \hspace{0.9cm} """+klant['Kenteken']+r"""\\
+     	"""+omschrijving
+
+	if not raming:
+		topText += r"""\\
      	Factuurdatum:\hspace{0.3cm} """+datum+r""" \\
-     	Factuurnummer: """+factuurnummer+r"""\\
+     	Factuurnummer: """+factuurnummer
+	else:
+		topText += r"""\\
+		Datum:\hspace{1.5cm} """+datum
+
+	if klant['Kenteken'] != '':
+		topText += r"""\\
+		\\
+		Kenteken: \hspace{1.1cm} """+klant['Kenteken']
+	topText += r"""\\
 	 \end{tabular}
 	}
 

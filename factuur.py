@@ -135,10 +135,10 @@ def rebuildWerkUrenWindow():
 #--------------------------Setup----------------------
 
 def urenWindowSetup():
-	def saveAuto(layout,voorbeeld):
+	def saveAuto(layout,voorbeeld,raming = False):
 		autoEdit = layout.itemAt(1)
 		data['Auto'] = dialogs.getJsonLayout(autoEdit)
-		latexfact.startFactuur(data,voorbeeld)
+		latexfact.startFactuur(data,voorbeeld,raming)
 
 	def kiesAuto(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Autos')
@@ -177,14 +177,18 @@ def urenWindowSetup():
 	leftLayout.addWidget(werkScroll,4)
 	leftLayout.addWidget(addUrenb,1)
 
-	voorbeeldButton = QtGui.QPushButton("Afdrukvoorbeeld")
+	prijsOpgaveButton = QtGui.QPushButton("Kostenraming")
+	prijsOpgaveButton.setFixedHeight(100)
+	prijsOpgaveButton.clicked.connect(lambda : saveAuto(rightLayout,True,raming = True))
+
+	voorbeeldButton = QtGui.QPushButton("Afdrukvoorbeeld Factuur")
 	voorbeeldButton.setFixedHeight(100)
-	voorbeeldButton.setText("Afdrukvoorbeeld")
 	voorbeeldButton.clicked.connect(lambda : saveAuto(rightLayout,True))
 
 	rightLayout.addWidget(bestaandeAutoKiezen,1)
 	rightLayout.addLayout(autoEdit,4)
 	rightLayout.addWidget(voorbeeldButton,1)
+	rightLayout.addWidget(prijsOpgaveButton,1)
 	rightLayout.addWidget(urenWindow.volgendeView,1)
 
 	urenWindow.totalLayout.insertLayout(1,leftLayout)
@@ -340,10 +344,9 @@ def vrijveldWindowSetup():
 	vrijveldWindow.totalLayout.addLayout(rightLayout,1)
 
 def customerWindowSetup():
-	def makeFactuur(rightLayout,omsLine):
+	def saveCustomer(rightLayout):
 		customerEdit = rightLayout.itemAt(1)
 		data['Klant'] = dialogs.getJsonLayout(customerEdit)
-		data['Omschrijving'] = str(omsLine.text())
 
 	def kiesKlant(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Klanten')
@@ -378,20 +381,13 @@ def customerWindowSetup():
 		buttons.append(b1)
 	buttons[0].click()
 
-	omsLayout = QtGui.QHBoxLayout()
-	omsLabel = QtGui.QLabel("Omschrijving")
-	omsLine = QtGui.QLineEdit()
-	omsLayout.addWidget(omsLabel)
-	omsLayout.addWidget(omsLine)
-
 	rightLayout.addWidget(bestaandeKlantKiezen)
 	rightLayout.addLayout(customerEdit)
 	rightLayout.addStretch()
 	rightLayout.addLayout(buttonLayout)
-	rightLayout.addLayout(omsLayout)
 	rightLayout.addWidget(customerWindow.volgendeView)
 
-	customerWindow.setOpslaan(lambda : makeFactuur(rightLayout,omsLine))
+	customerWindow.setOpslaan(lambda : saveCustomer(rightLayout))
 
 	customerWindow.totalLayout.addLayout(rightLayout,5)
 
