@@ -5,10 +5,17 @@ import utils
 #pointer naar factuur.data voor debuggen
 data = None
 
+def setWindowPosition(window,resize = True,ax=0,ay=0):
+	pdesk = QtGui.QDesktopWidget()
+	rect = pdesk.screenGeometry(pdesk.primaryScreen())
+	window.move(rect.left()+ax,rect.top()+ay)
+	if resize:
+		window.resize(rect.width(),rect.height())
+
 class Window(QtGui.QWidget):
 	def __init__(self,Titel, parent=None):
 		super(Window,self).__init__(parent)
-		self.setWindowPosition(self)
+		setWindowPosition(self)
 		self.volgendeView = self.volgendeButton()
 		self.vorigeView = self.vorigeButton()
 		self.totalLayout = QtGui.QHBoxLayout()
@@ -19,13 +26,6 @@ class Window(QtGui.QWidget):
 		self.totalLayout.setAlignment(Qt.AlignTop)
 		self.setWindowTitle("MX5-factuur \'"+Titel+"'\'")
 		self.setLayout(self.totalLayout)
-
-	def setWindowPosition(window,resize = True,ax=0,ay=0):
-		pdesk = QtGui.QDesktopWidget()
-		rect = pdesk.screenGeometry(pdesk.primaryScreen())
-		window.move(rect.left()+ax,rect.top()+ay)
-		if resize:
-			window.resize(rect.width(),rect.height())
 
 	def vorigeButton(self):
 		vorigeView = QtGui.QPushButton()

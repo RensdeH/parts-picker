@@ -55,6 +55,13 @@ def makeTex(data):
 	bedrijfsinfo = data['bedrijf']
 	factuurNummer = data['FactuurNummer']
 	omschrijving = data['Omschrijving']
+	betaalwijze = "contant of per pin"
+	if data['soortFactuur'] == utils.SoortFactuur.Reparatie:
+		betaalwijze += " bij afhalen auto"
+	if data['soortFactuur'] == utils.SoortFactuur.Verkoop:
+		betaalwijze = "via bankoverschrijving voor afhalen auto"
+	if data['soortFactuur'] == utils.SoortFactuur.Inkoop:
+		betaalwijze = "via bankoverschrijving"
 	auto = None
 	if 'Auto' in data:
 		auto = data['Auto']
@@ -63,7 +70,7 @@ def makeTex(data):
 	latexCode += makeStartText()
 	latexCode += makeTopText(klant,factuurNummer,omschrijving)
 	latexCode += makeOrderText(order,werk,auto,preCustom,custom)
-	latexCode += makeBottomText(bedrijfsinfo)
+	latexCode += makeBottomText(bedrijfsinfo,betaalwijze)
 	return latexCode
 
 def getFactuurNummer(soort,voorbeeld):
@@ -167,9 +174,9 @@ def getCarDes(auto):
 	s += auto['extra info']
 	return s
 
-def makeBottomText(bedrijf):
+def makeBottomText(bedrijf,betaalwijze):
 	bottomText = r"""
-	\tab \tab Betaalwijze: {\bf contant of pinbetaling bij afhalen auto}
+	\tab \tab Betaalwijze: {\bf """ + betaalwijze + r"""}
 	\vspace*{\fill}
 	\begin{center}
 		\begin{spacing}{0.5}

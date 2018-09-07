@@ -51,6 +51,7 @@ class Widget(QtGui.QDialog):
 	@staticmethod
 	def get_data(parent=None):
 		dialog = Widget(parent)
+		dialog.deleteLater()
 		if dialog.exec_() == 0:
 			return None
 		return dialog.return_strings()
@@ -71,32 +72,32 @@ class VrijWidget(QtGui.QDialog):
 		grid = QtGui.QGridLayout()
 		grid.setSpacing(3)
 
-		self.edit_first = QtGui.QDoubleSpinBox()
+		self.edit_first = QtGui.QDoubleSpinBox(parent = self)
 		self.edit_first.setSingleStep(float(1))
 		self.edit_first.setMinimum(1)
-		self.edit_first.setDecimals(0)
+		self.edit_first.setDecimals(1)
 		self.edit_first.setValue(1)
 		self.edit_first.setFixedWidth(100)
 
-		grid.addWidget(QtGui.QLabel('Aantal'), 1, 0)
+		grid.addWidget(QtGui.QLabel('Aantal',parent = self), 1, 0)
 		grid.addWidget(self.edit_first, 1, 1)
 
-		self.edit_second = QtGui.QLineEdit()
-		grid.addWidget(QtGui.QLabel('Naam'), 2, 0)
+		self.edit_second = QtGui.QLineEdit(parent = self)
+		grid.addWidget(QtGui.QLabel('Naam',parent = self), 2, 0)
 		grid.addWidget(self.edit_second, 2, 1)
 
-		self.editPrijs = QtGui.QDoubleSpinBox()
+		self.editPrijs = QtGui.QDoubleSpinBox(parent = self)
 		self.editPrijs.setSingleStep(float(1))
 		self.editPrijs.setMinimum(0)
 		self.editPrijs.setMaximum(1000)
 		self.editPrijs.setDecimals(2)
 		self.editPrijs.setFixedWidth(100)
 
-		grid.addWidget(QtGui.QLabel('Prijs per stuk'), 3, 0)
+		grid.addWidget(QtGui.QLabel('Prijs per stuk',parent = self), 3, 0)
 		grid.addWidget(self.editPrijs, 3, 1)
 		self.tax = 0
-		self.tax0 = QtGui.QRadioButton('BTW margeregeling')
-		self.tax21 = QtGui.QRadioButton('BTW 21%')
+		self.tax0 = QtGui.QRadioButton('BTW margeregeling',parent=self)
+		self.tax21 = QtGui.QRadioButton('BTW 21%',parent=self)
 		self.tax0.clicked.connect(lambda s : setTax(0))
 		self.tax21.clicked.connect(lambda s : setTax(21))
 
@@ -116,12 +117,12 @@ class VrijWidget(QtGui.QDialog):
 
 	def return_strings(self):
 		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
-		print(self.tax)
 		return [self.edit_first.value(), self.edit_second.text(),float(self.editPrijs.value()),self.tax]
 
 	@staticmethod
 	def get_data(parent=None):
 		dialog = VrijWidget(parent)
+		dialog.deleteLater()
 		if dialog.exec_() == 0:
 			return None
 		return dialog.return_strings()
@@ -135,15 +136,15 @@ class SearchDialog(QtGui.QDialog):
 		super(SearchDialog,self).__init__(parent)
 
 		totalLayout = QtGui.QVBoxLayout()
-		topLayout = QtGui.QVBoxLayout()
-		bottomLayout = QtGui.QVBoxLayout()
+		topLayout = QtGui.QHBoxLayout()
+		bottomLayout = QtGui.QHBoxLayout()
 
-		self.zoekNaar = QtGui.QLabel('Zoeken naar:')
-		self.editZoekNaar = QtGui.QLineEdit()
+		self.zoekNaar = QtGui.QLabel('Zoeken naar:',parent=self)
+		self.editZoekNaar = QtGui.QLineEdit(parent=self)
 		topLayout.addWidget(self.zoekNaar)
 		topLayout.addWidget(self.editZoekNaar)
 
-		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen')
+		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen',parent=self)
 		zoeken = QtGui.QPushButton('Zoeken', self)
 		zoeken.clicked.connect(lambda : checker(self.zoekNaar.text()))
 		bottomLayout.addWidget(self.zoekAlles)
@@ -162,18 +163,19 @@ class SearchDialog(QtGui.QDialog):
 	@staticmethod
 	def get_data(parent=None):
 		dialog = SearchDialog(parent)
+		dialog.deleteLater()
 		if dialog.exec_() == 0:
 			return None
 		return dialog.return_strings()
 
 def urenDialog():
-	return Widget().get_data()  # window is value from edit field
+	return Widget.get_data()  # window is value from edit field
 
 def vrijVeldDialog():
-	return VrijWidget().get_data()
+	return VrijWidget.get_data()
 
 def zoekDialog():
-	return SearchDialog().get_data()
+	return SearchDialog.get_data()
 
 def errorDialog():
 	QtGui.QMessageBox.warning(None,"Geen soort gekozen",'Je hebt geen soort factuur (I,A,R,V) gekozen')

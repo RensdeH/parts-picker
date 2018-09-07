@@ -229,6 +229,7 @@ def productWindowSetup():
 	productWindow.totalLayout.addLayout(rightlayout,1)
 
 def addVrijVeld():
+	print(len(app.allWidgets()))
 	product = dialogs.vrijVeldDialog()
 	if product == None:
 		return
@@ -406,17 +407,18 @@ def setVolgorde(volgorde):
 #############################################################
 
 def searchTab():
-	print(len(app.allWidgets()))
+	activeData = {}
 
 	activeTab = tabs
 	while type(activeTab.currentWidget()) is QtGui.QTabWidget:
 		activeTab = activeTab.currentWidget()
 
-	activePosition = activeTab.currentIndex()
-	activeCatName = activeTab.tabText(activePosition)
-	activeScroll = activeTab.currentWidget()
-	activeCatId = activeScroll.whatsThis()
-
+	activeData['Position'] = activeTab.currentIndex()
+	activeData['CatName'] = activeTab.tabText(activeData['Position'])
+	activeData['Scroll'] = activeTab.currentWidget()
+	activeData['CatId'] = activeData['Scroll'].whatsThis()
+	activeData['Tab'] = activeTab
+	activeData['Color'] = activeTab.tabBar().tabTextColor(activeData['Position'])
 	#lijst = Cids[str(activeCatId)]
 	#text, ok = QtGui.QInputDialog.getText(productWindow,"Zoeken","Zoeken in:" + str(activeCatName))
 	zoekJob = dialogs.zoekDialog()
@@ -428,17 +430,17 @@ def searchTab():
 	if zoekJob[1]:
 		zoekLijst = productenLijst
 	else:
-		zoekLijst = Cids[str(activeCatId)]
+		zoekLijst = Cids[str(activeData['CatId'])]
 
 	results = []
 	for item in zoekLijst:
 		if text in item['name'].lower() or text in item['description'].lower():
 			results.append(item)
 
-	newScroll = makeTab(activeCatId)
+	newScroll = makeTab(activeData['CatId'])
 
 	b1 = QtGui.QPushButton(newScroll)
-	b1.clicked.connect(lambda state, tab = activeTab, i=activePosition,name=activeCatName,catId = activeCatId: previousTab(tab,i,name,catId))
+	b1.clicked.connect(lambda state, tabData = activeData: previousTab(tabData))
 	b1.setFixedSize(100,100)
 	b1.setFocusPolicy(Qt.NoFocus)
 	b1.setStyleSheet("border: none;")
@@ -451,24 +453,27 @@ def searchTab():
 
 	makeGrid(results,newScroll,(b1,l1))
 
-	activeTab.insertTab(activePosition,newScroll,'Zoek:'+str(text))
-	baseWidget = activeTab.widget(activePosition+1)
-	activeTab.removeTab(activePosition+1)
+	index = activeTab.insertTab(activeData['Position'],newScroll,'Zoek:'+str(text))
+	if not zoekJob[1]:
+		activeTab.tabBar().setTabTextColor(index,activeData['Color'])
+	baseWidget = activeTab.widget(activeData['Position']+1)
+	activeTab.removeTab(activeData['Position']+1)
 	baseWidget.deleteLater()
-	activeTab.setCurrentIndex(activePosition)
+	activeTab.setCurrentIndex(activeData['Position'])
 
-def previousTab(tab, pos,name, catId):
-	scroll = makeTab(catId)
-	makeGrid(Cids[str(catId)],scroll,None)
+def previousTab(tabData):
+	scroll = makeTab(tabData['CatId'])
+	makeGrid(Cids[str(tabData['CatId'])],scroll,None)
 
-	sluitZoeken(scroll,tab,pos,name)
+	sluitZoeken(scroll,tabData['Tab'],tabData['Position'],catNames[str(tabData['CatId'])],tabData['Color'])
 	print(len(app.allWidgets()))
 
-def sluitZoeken(scrollArea,tab,pos,name):
+def sluitZoeken(scrollArea,tab,pos,name,color):
 	zoek = tab.widget(pos)
 	tab.removeTab(pos)
 	zoek.deleteLater()
 	tab.insertTab(pos,scrollArea,name)
+	tab.tabBar().setTabTextColor(pos,color)
 	tab.setCurrentIndex(pos)
 
 ############################################################
@@ -503,18 +508,15 @@ def loopCats(c,ids,prefix,parentTab,lijst):
 
 	if childContainsItems:
 		parentTab.addTab(currentTab,"s: "+ utils.clean(c['title']))
-		#currentTab.parent().parent().tabBar().setTabTextColor(0,QtGui.QColor(255,len(tablist)*5,0))
 		if containsItems:
 			defaultTab = makeTab(c['id'])
 			tablist.append((c['id'],defaultTab))
 			currentTab.insertTab(0,defaultTab,"d: "+ utils.clean(c['title']))
-			#defaultTab.parent().parent().tabBar().setTabTextColor(0,QtGui.QColor(255,len(tablist)*5,0))
 			catNames[str(c['id'])] = c['title']
 	elif containsItems:
 		leafTab = makeTab(c['id'])
 		tablist.append((c['id'],leafTab))
 		parentTab.addTab(leafTab,"l: "+utils.clean(c['title']))
-		#leafTab.parent().parent().tabBar().setTabTextColor(0,QtGui.QColor(255,len(tablist)*5,0))
 		catNames[str(c['id'])] = c['title']
 
 	return childContainsItems or containsItems
@@ -524,17 +526,7 @@ def fillTabs(cids):
 		os.makedirs('Images/')
 	for t in tablist:
 		makeGrid(cids[str(t[0])],t[1],None)
-	colorTabs(tabs,QtGui.QColor(0,0,0),1)
-		#tabw = t[1].parent().parent().tabBar()
-		#length = tabw.count()
-		#for x in range(0,length):
-		#	tabw.setTabTextColor(x,QtGui.QColor(255-x*50,x*50,0))
-		#print(type(tabw))
-		#pal = tabw.palette()
-		#pal.setColor(QtGui.QPalette.Button,QtGui.QColor(0,0,255))
-		#tabw.setPalette(pal)
-		#tabw.setBackgroundRole(palette.Dark)
-		#t[1].parent().setStyleSheet("background-color: yellow");
+	colorTabs(tabs,QtGui.QColor(0,0,0),0)
 
 def colorTabs(tabWid,color,depth):
 	length = tabWid.count()
@@ -543,12 +535,14 @@ def colorTabs(tabWid,color,depth):
 	blue = color.blue()
 	for x in range(length):
 		binaryTab = "00000"+"{0:b}".format(x+1)
-		newRed = red+(binaryTab[-1]=='1')*(256/(2**depth))
-		newGreen = green+(binaryTab[-2]=='1')*(256/(2**depth))
-		newBlue = blue+(binaryTab[-3]=='1')*(256/(2**depth))
+		newRed = (binaryTab[-1]=='1')*128
+		newGreen = (binaryTab[-2]=='1')*128
+		newBlue = (binaryTab[-3]=='1')*128
 		newColor = QtGui.QColor(newRed,newGreen,newBlue)
-		newColor2 = QtGui.QColor(2*newRed/3,2*newGreen/3,2*newBlue/3)
-		tabWid.tabBar().setTabTextColor(x,newColor2)
+		if depth == 2:
+			tabWid.tabBar().setTabTextColor(x,color)
+		else:
+			tabWid.tabBar().setTabTextColor(x,newColor)
 		if type(tabWid.widget(x)) is QtGui.QTabWidget:
 			colorTabs(tabWid.widget(x),newColor,depth+1)
 
