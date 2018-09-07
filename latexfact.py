@@ -27,7 +27,7 @@ def startFactuur(data,voorbeeld,raming = False):
 def makeFactuur(data,voorbeeld,raming=False):
 	factuurNummer = getFactuurNummer(data['soortFactuur'],voorbeeld,raming)
 	data['FactuurNummer'] = factuurNummer
-	pdfNaam = data['Klant']['Naam'] + factuurNummer
+	pdfNaam = data['Klant']['Naam'] +' '+ factuurNummer
 	data['bedrijf'] = standardBedrijfInfo()
 	if raming:
 		data['Omschrijving'] = 'Kostenraming'
@@ -146,8 +146,10 @@ def makeOrderText(order,werk,auto,preCustom,custom):
 	orderText = ''
 	orderText += r"""
 
-	\begin{invoiceTable}
-	\feetype{Producten}"""
+	\begin{invoiceTable}"""
+
+	if order != [] or preCustom != [] or custom != []:
+		orderText += r"""\feetype{Producten}"""
 	for o in order:
 		orderText += '\unitrow{'+o['item']['name']+'}{'+str(o['Aantal'])+'}{'+o['item']['price']['default']+'}{}'
 		if float(o['item']['tax']) == 21:
@@ -192,8 +194,11 @@ def makeOrderText(order,werk,auto,preCustom,custom):
 
 def getCarDes(auto):
 	s = ''
-	s += str(auto['Model'])+' '
-	s += "Bouwjaar:" + str(auto['Bouwjaar']) + '\n'
+	s += str(auto['Model'])+' kenteken '+str(auto['Kenteken'])+r"""\\"""
+	s += "Bouwjaar: " + str(auto['Bouwjaar']) +r"""\\"""
+	s += "km-stand: " + str(auto['km-stand']) +r"""\\"""
+	s += "Meldcode: " + str(auto['Meldcode']) +r"""\\"""
+	s += "APK " + str(auto['APK']) +r"""\\"""
 	s += auto['extra info']
 	return s
 
@@ -202,7 +207,7 @@ def makeBottomText(bedrijf,betaalwijze):
 	\tab \tab Betaalwijze: {\bf """ + betaalwijze + r"""}
 	\vspace*{\fill}
 	\begin{center}
-		\begin{spacing}{0.5}
+		\begin{spacing}{1.0}
 		"""+bedrijf['Website']+r""" / """+bedrijf['Straat']+r""" / """+bedrijf['Postcode']+r""" """+bedrijf['Plaats']+r""" """+bedrijf['Land']+r""" \\
 		KvK """+bedrijf['KvK']+r""" / BTW nr. """+bedrijf['BTW-nr.']+r""" \\
 		IBAN """+bedrijf['IBAN']+r""" / Bicnr. """+bedrijf['BIC']+r""" \\

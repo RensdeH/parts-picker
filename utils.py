@@ -89,7 +89,7 @@ def makeCompany():
 	data['Land'] = 'Nederland'
 	data['Postcode'] = '4231DJ'
 	data['Email'] = 'info@mx5-winkel.nl'
-	data['Website'] = 'MX5-winkel.nl'
+	data['Website'] = 'MX5Winkel.nl'
 	data['KvK'] = '66326141'
 	data['BTW-nr.'] = 'NL856495621B01'
 	data['IBAN'] = 'NL63RABO0108245489'
