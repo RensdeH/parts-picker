@@ -388,8 +388,9 @@ def customerWindowSetup():
 	rightLayout.addWidget(customerWindow.volgendeView)
 
 	customerWindow.setOpslaan(lambda : saveCustomer(rightLayout))
-
-	customerWindow.totalLayout.addLayout(rightLayout,5)
+	customerWindow.totalLayout.addStretch()
+	customerWindow.totalLayout.addLayout(rightLayout)
+	customerWindow.totalLayout.addStretch()
 
 def setVolgorde(volgorde):
 	volgorde[0].setNextView(volgorde[1])

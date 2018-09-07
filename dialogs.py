@@ -9,15 +9,39 @@ from collections import OrderedDict
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
-class Widget(QtGui.QDialog):
+class baseDialog(QtGui.QDialog):
+	def __init__(self,parent=None):
+		super(baseDialog,self).__init__(parent)
+		self.totalLayout = QtGui.QVBoxLayout()
+		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
+		self.returnList = []
+		self.setLayout(self.totalLayout)
+
+	def return_strings(self):
+		lijst = []
+		for x in self.returnList:
+			lijst.append(x())
+		return lijst
+
+	@staticmethod
+	def getData(dialog):
+		dialog.deleteLater()
+		if dialog.exec_() == 0:
+			return None
+		return dialog.return_strings()
+
+	def validate():
+		self.done(1)
+
+class UrenDialog(baseDialog):
 	def __init__(self, parent=None):
-		def checker(u,o):
+		def validate(u,o):
 			if str(u) == '0,0':
 				return
 			if str(o) == '':
 				return
 			self.done(1)
-		super(Widget,self).__init__(parent)
+		super(UrenDialog,self).__init__(parent)
 
 		grid = QtGui.QGridLayout()
 		grid.setSpacing(3)
@@ -36,25 +60,18 @@ class Widget(QtGui.QDialog):
 		grid.addWidget(self.edit_second, 2, 1)
 
 		apply_button = QtGui.QPushButton('Toevoegen', self)
-		apply_button.clicked.connect(lambda : checker(self.edit_first.text(),self.edit_second.text()))
+		apply_button.clicked.connect(lambda : validate(self.edit_first.text(),self.edit_second.text()))
 
 		grid.addWidget(apply_button, 4, 3)
-		self.setLayout(grid)
+		self.totalLayout.addLayout(grid)
 
-		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
 		self.setFixedSize(600,350)
-
-	def return_strings(self):
-		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
-		return [self.edit_first.value(), self.edit_second.text()]
+		self.returnList.append(self.edit_first.value)
+		self.returnList.append(self.edit_second.text)
 
 	@staticmethod
-	def get_data(parent=None):
-		dialog = Widget(parent)
-		dialog.deleteLater()
-		if dialog.exec_() == 0:
-			return None
-		return dialog.return_strings()
+	def get_data():
+		return SearchDialog.getData(UrenDialog())
 
 class VrijWidget(QtGui.QDialog):
 	def __init__(self, parent=None):
@@ -127,15 +144,14 @@ class VrijWidget(QtGui.QDialog):
 			return None
 		return dialog.return_strings()
 
-class SearchDialog(QtGui.QDialog):
+class SearchDialog(baseDialog):
 	def __init__(self, parent=None):
-		def checker(z):
-			if z!='':
+		def validate(z):
+			if z != '':
 				self.done(1)
-			return
 		super(SearchDialog,self).__init__(parent)
 
-		totalLayout = QtGui.QVBoxLayout()
+		#totalLayout = QtGui.QVBoxLayout()
 		topLayout = QtGui.QHBoxLayout()
 		bottomLayout = QtGui.QHBoxLayout()
 
@@ -147,30 +163,24 @@ class SearchDialog(QtGui.QDialog):
 		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen',parent=self)
 		self.zoekAlles.click()
 		zoeken = QtGui.QPushButton('Zoeken', self)
-		zoeken.clicked.connect(lambda : checker(self.zoekNaar.text()))
+		zoeken.clicked.connect(lambda : validate(self.zoekNaar.text()))
 		bottomLayout.addWidget(self.zoekAlles)
 		bottomLayout.addWidget(zoeken)
-		totalLayout.addLayout(topLayout)
-		totalLayout.addLayout(bottomLayout)
-		self.setLayout(totalLayout)
+		self.totalLayout.addLayout(topLayout)
+		self.totalLayout.addLayout(bottomLayout)
 
 		windowClass.setWindowPosition(self,resize = False, ax = 300, ay = 300)
 		self.setFixedSize(600,350)
 
-	def return_strings(self):
-		#   Return list of values. It need map with str (self.lineedit.text() will return QString)
-		return [self.editZoekNaar.text(), self.zoekAlles.isChecked()]
+		self.returnList.append(self.editZoekNaar.text)
+		self.returnList.append(self.zoekAlles.isChecked)
 
 	@staticmethod
-	def get_data(parent=None):
-		dialog = SearchDialog(parent)
-		dialog.deleteLater()
-		if dialog.exec_() == 0:
-			return None
-		return dialog.return_strings()
+	def get_data():
+		return SearchDialog.getData(SearchDialog())
 
 def urenDialog():
-	return Widget.get_data()  # window is value from edit field
+	return UrenDialog.get_data()  # window is value from edit field
 
 def vrijVeldDialog():
 	return VrijWidget.get_data()

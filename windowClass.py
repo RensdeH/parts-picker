@@ -33,6 +33,7 @@ class Window(QtGui.QWidget):
 		vorigeView.clicked.connect(self.previousView)
 		vorigeView.setFixedHeight(100)
 		vorigeView.setStyleSheet("background-color: yellow");
+		vorigeView.setFocusPolicy(Qt.NoFocus)
 		return vorigeView
 
 	def volgendeButton(self):
@@ -41,6 +42,7 @@ class Window(QtGui.QWidget):
 		volgendeView.setText("Volgende>")
 		volgendeView.clicked.connect(self.nextView)
 		volgendeView.setStyleSheet("background-color: yellow");
+		volgendeView.setFocusPolicy(Qt.NoFocus)
 		return volgendeView
 
 	def show(self):
