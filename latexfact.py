@@ -16,46 +16,49 @@ def mockfact():
 	soort = utils.SoortFactuur.Reparatie
 	omschrijving = 'Mock Factuur'
 
-def startFactuur(data,voorbeeld,raming = False):
+def startFactuur(data,typeFactuur):
 	if 'soortFactuur' not in data:
 		dialogs.errorDialog()
 		return
-	if not voorbeeld:
+	if typeFactuur != utils.TypeFactuur.Afdrukvoorbeeld:
 		utils.writeJson('Resources/Klanten/'+data['Klant']['Naam']+'.json',data['Klant'])
-	makeFactuur(data,voorbeeld,raming)
+	makeFactuur(data,typeFactuur)
 
-def makeFactuur(data,voorbeeld,raming=False):
-	factuurNummer = getFactuurNummer(data['soortFactuur'],voorbeeld,raming)
+def makeFactuur(data,typeFactuur):
+	factuurNummer = getFactuurNummer(data['soortFactuur'],typeFactuur)
 	data['FactuurNummer'] = factuurNummer
 	pdfNaam = data['Klant']['Naam'] +' '+ factuurNummer
 	data['bedrijf'] = standardBedrijfInfo()
-	if raming:
+	if typeFactuur == utils.TypeFactuur.Kostenraming:
 		data['Omschrijving'] = 'Kostenraming'
-	else:
+	elif typeFactuur == utils.TypeFactuur.Definitief:
 		data['Omschrijving'] = 'Factuur'
+	else:
+		data['Omschrijving'] = 'Afdrukvoorbeeld'
 	workingDir = 'Invoice/'
 	filename = pdfNaam + '.tex'
 	pdffilename = pdfNaam + '.pdf'
 
 	file = open(workingDir + filename,'w')
-	latexCode = makeTex(data,raming)
+	latexCode = makeTex(data,typeFactuur)
 	file.write(latexCode)
 	file.close()
 	proc = runpdflatex(filename,True,workingDir)
 	proc.wait()
-	shutil.move(workingDir + filename,'Facturen/' + filename)
-	if voorbeeld:
-		shutil.move(workingDir + pdffilename,'Temp/' + pdffilename)
+
+	if typeFactuur == utils.TypeFactuur.Afdrukvoorbeeld:
+		shutil.move(workingDir + filename,'Facturen/Temp/' + filename)
+		shutil.move(workingDir + pdffilename,'Facturen/Temp/' + pdffilename)
+		openfile(pdffilename,'Facturen/Temp/')
 	else:
 		shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)
-		shutil.copy('Facturen/' + pdffilename,'/home/chris/Dropbox/B. MX5-Winkel administratie/MX5Winkel' + pdffilename)
-
-	if voorbeeld:
-		openfile(pdffilename,'Temp/')
-	else:
+		try:
+			shutil.copy('Facturen/' + pdffilename,'/home/chris/Dropbox/B. MX5-Winkel administratie/MX5Winkel' + pdffilename)
+		except:
+			print('Dropbox directory not found!')
 		openfile(pdffilename,'Facturen/')
 
-def makeTex(data,raming):
+def makeTex(data,typeFactuur):
 	order = data['Artikelen']
 	preCustom = data['preCustom']
 	custom = data['Custom']
@@ -77,24 +80,23 @@ def makeTex(data,raming):
 
 	latexCode = ""
 	latexCode += makeStartText()
-	latexCode += makeTopText(klant,factuurNummer,omschrijving,raming)
+	latexCode += makeTopText(klant,factuurNummer,omschrijving,typeFactuur)
 	latexCode += makeOrderText(order,werk,auto,preCustom,custom)
 	latexCode += makeBottomText(bedrijfsinfo,betaalwijze)
 	return latexCode
 
-def getFactuurNummer(soort,voorbeeld,raming):
+def getFactuurNummer(soort,typeFactuur):
 	S = soort.name[0:1]
 	jaar = dt.datetime.now().year
-	counter = getCounter('C',voorbeeld)
-	if raming:
-		return 'Raming-'+str(jaar) +'-'+ S + str(counter)
-	else:
-		return str(jaar) +'-'+ S + str(counter)
+	counter = getCounter('C',typeFactuur)
+	if typeFactuur == utils.TypeFactuur.Kostenraming:
+		return 'Raming' + str(jaar) +'-'+ 'K' + str(counter)
+	return str(jaar) +'-'+ S + str(counter)
 
-def getCounter(S,voorbeeld):
+def getCounter(S,typeFactuur):
 	counters = utils.readJson('Resources/counters.json')
-	c = counters[S] + 1
-	if not voorbeeld:
+	c = counters.setdefault(S,100) + 1
+	if typeFactuur != utils.TypeFactuur.Afdrukvoorbeeld:
 		counters[S] = c
 		utils.writeJson('Resources/counters.json',counters)
 	return c
@@ -102,7 +104,7 @@ def getCounter(S,voorbeeld):
 def makeStartText():
 	return utils.readfile('Invoice/top.txt')
 
-def makeTopText(klant,factuurnummer, omschrijving,raming):
+def makeTopText(klant,factuurnummer, omschrijving,typeFactuur):
 	datumData = dt.date.today()
 	datum = datumData.strftime("%d-%m-%Y")
 	topText = r"""\begin{tabular}[t]{l@{}}
@@ -119,18 +121,19 @@ def makeTopText(klant,factuurnummer, omschrijving,raming):
 	\begin{tabular}[t]{l@{}}
      	"""+omschrijving
 
-	if not raming:
-		topText += r"""\\
-     	Factuurdatum:\hspace{0.3cm} """+datum+r""" \\
-     	Factuurnummer: """+factuurnummer
-	else:
+	if typeFactuur == utils.TypeFactuur.Kostenraming:
 		topText += r"""\\
 		Datum:\hspace{1.5cm} """+datum
+	else:
+		topText += r"""\\
+		Factuurdatum:\hspace{0.3cm} """+datum+r""" \\
+		Factuurnummer: """+factuurnummer
 
 	if klant['Kenteken'] != '':
 		topText += r"""\\
 		\\
 		Kenteken: \hspace{1.1cm} """+klant['Kenteken']
+
 	topText += r"""\\
 	 \end{tabular}
 	}

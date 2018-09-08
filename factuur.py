@@ -135,10 +135,10 @@ def rebuildWerkUrenWindow():
 #--------------------------Setup----------------------
 
 def urenWindowSetup():
-	def saveAuto(layout,voorbeeld,raming = False):
+	def saveAuto(layout,typeFactuur):
 		autoEdit = layout.itemAt(1)
 		data['Auto'] = dialogs.getJsonLayout(autoEdit)
-		latexfact.startFactuur(data,voorbeeld,raming)
+		latexfact.startFactuur(data,typeFactuur)
 
 	def kiesAuto(layout):
 		fileName = QtGui.QFileDialog.getOpenFileName(customerWindow, 'Open File', 'Resources/Autos')
@@ -179,11 +179,11 @@ def urenWindowSetup():
 
 	prijsOpgaveButton = QtGui.QPushButton("Kostenraming")
 	prijsOpgaveButton.setFixedHeight(100)
-	prijsOpgaveButton.clicked.connect(lambda : saveAuto(rightLayout,True,raming = True))
+	prijsOpgaveButton.clicked.connect(lambda : saveAuto(rightLayout,utils.TypeFactuur.Kostenraming))
 
 	voorbeeldButton = QtGui.QPushButton("Afdrukvoorbeeld Factuur")
 	voorbeeldButton.setFixedHeight(100)
-	voorbeeldButton.clicked.connect(lambda : saveAuto(rightLayout,True))
+	voorbeeldButton.clicked.connect(lambda : saveAuto(rightLayout,utils.TypeFactuur.Afdrukvoorbeeld))
 
 	rightLayout.addWidget(bestaandeAutoKiezen,1)
 	rightLayout.addLayout(autoEdit,4)
@@ -194,7 +194,7 @@ def urenWindowSetup():
 	urenWindow.totalLayout.insertLayout(1,leftLayout)
 	urenWindow.totalLayout.insertLayout(2,rightLayout)
 
-	urenWindow.setOpslaan(lambda : saveAuto(rightLayout,False))
+	urenWindow.setOpslaan(lambda : saveAuto(rightLayout,utils.TypeFactuur.Definitief))
 	urenWindow.volgendeView.setText("Definitieve Factuur")
 
 	werkLayout.setAlignment(Qt.AlignTop)

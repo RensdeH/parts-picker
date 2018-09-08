@@ -13,6 +13,12 @@ class SoortFactuur(Enum):
 	Verkoop = 3
 	Artikelen = 4
 
+class TypeFactuur(Enum):
+	Definitief = 1
+	Afdrukvoorbeeld = 2
+	Kostenraming = 3
+
+
 def clean(name):
 	name = name.replace("Mazda","")
 	name = name.replace("MX5","")

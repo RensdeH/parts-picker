@@ -9,5 +9,7 @@
 \begin{center}
 \includegraphics[scale=0.7]{Horizontal-logo.jpg}
 \end{center}
+\vspace*{1ex}
 \hrule
+\vspace*{3ex}
 \leavevmode\hbox to \linewidth{%
