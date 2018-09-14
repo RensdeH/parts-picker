@@ -44,6 +44,8 @@ class UrenDialog(baseDialog):
 		super(UrenDialog,self).__init__(parent)
 
 		self.edit_first = QtGui.QDoubleSpinBox()
+		local = QLocale.c()
+		self.edit_first.setLocale(local)
 		self.edit_first.setSingleStep(float(0.25))
 		self.edit_first.setMinimum(0)
 		self.edit_first.setDecimals(2)
@@ -69,6 +71,8 @@ class VrijVeldDialog(baseDialog):
 		super(VrijVeldDialog,self).__init__(parent)
 
 		self.edit_first = QtGui.QDoubleSpinBox(parent = self)
+		local = QLocale.c()
+		self.edit_first.setLocale(local)
 		self.edit_first.setSingleStep(float(1))
 		self.edit_first.setMinimum(1)
 		self.edit_first.setDecimals(1)
@@ -82,6 +86,8 @@ class VrijVeldDialog(baseDialog):
 		self.totalLayout.addRow(QtGui.QLabel('Naam'),self.edit_second)
 
 		self.editPrijs = QtGui.QDoubleSpinBox(parent = self)
+		local = QLocale.c()
+		self.editPrijs.setLocale(local)
 		self.editPrijs.setSingleStep(float(1))
 		self.editPrijs.setMinimum(0)
 		self.editPrijs.setMaximum(1000)
@@ -122,7 +128,7 @@ class SearchDialog(baseDialog):
 
 		self.zoekNaar = QtGui.QLabel('Zoeken naar:',parent=self)
 		self.editZoekNaar = QtGui.QLineEdit(parent=self)
-
+		self.editZoekNaar.setFocus()
 		self.zoekAlles = QtGui.QCheckBox('Zoeken in alle categorieen',parent=self)
 		self.zoekAlles.click()
 
