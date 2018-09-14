@@ -1,4 +1,5 @@
 # parts-picker
+#Versie 1.0
 Facturatie programma dmv Mijnwebwinkel api
 Benodigde packages
 -python-pip   #python algemene functies
