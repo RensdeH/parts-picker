@@ -198,4 +198,3 @@ def makeCounters():
 	data['year'] = 2018
 	writeJson('Resources/counters.json',data)
 	return data
-makeCustomProducts()
