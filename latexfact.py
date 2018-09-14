@@ -32,7 +32,10 @@ def makeFactuur(data,typeFactuur):
 	if typeFactuur == utils.TypeFactuur.Kostenraming:
 		data['Omschrijving'] = 'Kostenraming'
 	elif typeFactuur == utils.TypeFactuur.Definitief:
-		data['Omschrijving'] = 'Factuur'
+		if data['soortFactuur'] == utils.SoortFactuur.Inkoop:
+			data['Omschrijving'] = 'Inkoop-Factuur'
+		else:
+			data['Omschrijving'] = 'Factuur'
 	else:
 		data['Omschrijving'] = 'Afdrukvoorbeeld'
 	workingDir = 'Invoice/'
@@ -73,7 +76,7 @@ def makeTex(data,typeFactuur):
 	if data['soortFactuur'] == utils.SoortFactuur.Verkoop:
 		betaalwijze = "via bankoverschrijving voor afhalen auto"
 	if data['soortFactuur'] == utils.SoortFactuur.Inkoop:
-		betaalwijze = "via bankoverschrijving"
+		betaalwijze = "via contant of bankoverschrijving"
 	auto = None
 	if 'Auto' in data:
 		auto = data['Auto']
@@ -81,7 +84,7 @@ def makeTex(data,typeFactuur):
 	latexCode = ""
 	latexCode += makeStartText()
 	latexCode += makeTopText(klant,factuurNummer,omschrijving,typeFactuur)
-	latexCode += makeOrderText(order,werk,auto,preCustom,custom)
+	latexCode += makeOrderText(order,werk,auto,preCustom,custom,data)
 	latexCode += makeBottomText(bedrijfsinfo,betaalwijze)
 	return latexCode
 
@@ -141,7 +144,7 @@ def makeTopText(klant,factuurnummer, omschrijving,typeFactuur):
 	\renewcommand{\arraystretch}{0.9}"""
 	return topText
 
-def makeOrderText(order,werk,auto,preCustom,custom):
+def makeOrderText(order,werk,auto,preCustom,custom,  data):
 	btwhoog = 0
 	uitbtwhoog = 0
 	uitbtwgeen = 0
@@ -182,8 +185,12 @@ def makeOrderText(order,werk,auto,preCustom,custom):
 			uitbtwhoog += float(62.5) * w[0]
 
 	if auto['Model'] != '':
+		if data['soortFactuur'] == utils.SoortFactuur.Inkoop:
+			feetype = 'Inkoop Auto'
+		else:
+			feetype = 'Auto'
 		orderText += r"""
-		\feetype{Auto}"""
+		\feetype{"""+feetype+r"""}"""
 		autoOmschrijving = getCarDes(auto)
 		orderText += r"""\unitrow{"""+getCarDes(auto)+r"""}{"""+str(1)+r"""}{"""+auto['Prijs']+r"""}{}"""
 		uitbtwgeen += float(auto['Prijs'])
@@ -197,11 +204,13 @@ def makeOrderText(order,werk,auto,preCustom,custom):
 
 def getCarDes(auto):
 	s = ''
-	s += str(auto['Model'])+' kenteken '+str(auto['Kenteken'])+r"""\\"""
+	s += "Model: " + str(auto['Model']) + r"""\\"""
+	s += "Kenteken: " + str(auto['Kenteken']) +r"""\\"""
 	s += "Bouwjaar: " + str(auto['Bouwjaar']) +r"""\\"""
-	s += "km-stand: " + str(auto['km-stand']) +r"""\\"""
+	s += "Km-stand: " + str(auto['km-stand']) +r"""\\"""
 	s += "Meldcode: " + str(auto['Meldcode']) +r"""\\"""
-	s += "APK " + str(auto['APK']) +r"""\\"""
+	if str(auto['APK']) != '':
+		s += "APK " + str(auto['APK']) +r"""\\"""
 	s += auto['extra info']
 	return s
 
