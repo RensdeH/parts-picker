@@ -11,15 +11,12 @@ def mockfact():
 	order = utils.readJson('Resources/mockOrder.json')[0:9]
 	comp = []
 	for item in order:
-		comp.append({'Aantal':2,'item':item})
+		comp.append(utils.WebshopItem(2,item))
 	klant = utils.readJson('Resources/Klanten/mockCustomer.json')
 	soort = utils.SoortFactuur.Reparatie
 	omschrijving = 'Mock Factuur'
 
 def startFactuur(data,typeFactuur):
-	if 'soortFactuur' not in data:
-		dialogs.errorDialog()
-		return
 	if typeFactuur != utils.TypeFactuur.Afdrukvoorbeeld:
 		utils.writeJson('Resources/Klanten/'+data['Klant']['Naam']+'.json',data['Klant'])
 	makeFactuur(data,typeFactuur)
@@ -63,7 +60,6 @@ def makeFactuur(data,typeFactuur):
 
 def makeTex(data,typeFactuur):
 	order = data['Artikelen']
-	preCustom = data['preCustom']
 	custom = data['Custom']
 	werk = data['Werk']
 	klant = data['Klant']
@@ -84,7 +80,7 @@ def makeTex(data,typeFactuur):
 	latexCode = ""
 	latexCode += makeStartText()
 	latexCode += makeTopText(klant,factuurNummer,omschrijving,typeFactuur)
-	latexCode += makeOrderText(order,werk,auto,preCustom,custom,data)
+	latexCode += makeOrderText(order,werk,auto,custom,data)
 	latexCode += makeBottomText(bedrijfsinfo,betaalwijze)
 	return latexCode
 
@@ -144,44 +140,28 @@ def makeTopText(klant,factuurnummer, omschrijving,typeFactuur):
 	\renewcommand{\arraystretch}{0.9}"""
 	return topText
 
-def makeOrderText(order,werk,auto,preCustom,custom,  data):
+def makeOrderText(order,werk,auto,custom, data):
 	btwhoog = 0
 	uitbtwhoog = 0
 	uitbtwgeen = 0
 
-	orderText = ''
-	orderText += r"""
+	orderText = r"""\begin{invoiceTable}"""
 
-	\begin{invoiceTable}"""
-
-	if order != [] or preCustom != [] or custom != []:
+	if order != [] or custom != []:
 		orderText += r"""\feetype{Producten}"""
-	for o in order:
-		orderText += '\unitrow{'+o['item']['name']+'}{'+str(o['Aantal'])+'}{'+o['item']['price']['default']+'}{}'
-		if float(o['item']['tax']) == 21:
-			uitbtwhoog += float(o['item']['price']['default']) * o['Aantal']
-		elif float(o['item']['tax']) == 0:
-			uitbtwgeen += float(o['item']['price']['default']) * o['Aantal']
 
-	for o in preCustom:
-		orderText += '\unitrow{'+o['item']['name']+'}{'+str(o['Aantal'])+'}{'+o['item']['Prijs']+'}{}'
-		if float(o['item']['tax']) == 21:
-			uitbtwhoog += float(o['item']['Prijs']) * o['Aantal']
-		elif float(o['item']['tax']) == 0:
-			uitbtwgeen += float(o['item']['Prijs']) * o['Aantal']
-
-	for o in custom:
-		orderText += '\unitrow{'+o[1]+'}{'+str(o[0])+'}{'+str(o[2])+'}{}'
-		if o[3] == 21:
-			uitbtwhoog += float(o[2]) * o[0]
-		elif o[3] == 0:
-			uitbtwgeen += float(o[2]) * o[0]
+	for o in order + custom:
+		orderText += o.strLatex()
+		if o.Tax == 21:
+			uitbtwhoog += o.totaalPrijs()
+		elif o.Tax == 0:
+			uitbtwgeen += o.totaalPrijs()
 
 	if werk != []:
 		orderText += r"""
 		\feetype{Gewerkte Uren}"""
 		for w in werk:
-			orderText += r"""\hourrow{Werkplaatstarief """+w[1]+r"""}{"""+str(w[0])+r"""}{62.5}"""
+			orderText += r"""\hourrow{Werkplaatstarief """+w[1]+'}{'+str(w[0])+'}{62.5}'
 			uitbtwhoog += float(62.5) * w[0]
 
 	if auto['Model'] != '':
@@ -190,14 +170,14 @@ def makeOrderText(order,werk,auto,preCustom,custom,  data):
 		else:
 			feetype = 'Auto'
 		orderText += r"""
-		\feetype{"""+feetype+r"""}"""
+		\feetype{"""+feetype+'}'
 		autoOmschrijving = getCarDes(auto)
-		orderText += r"""\unitrow{"""+getCarDes(auto)+r"""}{"""+str(1)+r"""}{"""+auto['Prijs']+r"""}{}"""
+		orderText += r"""\unitrow{"""+getCarDes(auto)+'}{'+str(1)+'}{'+auto['Prijs']+'}{}'
 		uitbtwgeen += float(auto['Prijs'])
 
 	btwhoog = (uitbtwhoog/1.21)*0.21
 	orderText+=r"""
-	\setendtotal{"""+str(uitbtwhoog)+r"""}{"""+str(btwhoog)+r"""}{"""+str(uitbtwgeen)+r"""}{0}\\
+	\setendtotal{"""+str(uitbtwhoog)+'}{'+str(btwhoog)+'}{'+str(uitbtwgeen)+r"""}{0}\\
 	\end{invoiceTable}
 	"""
 	return orderText

@@ -1,6 +1,5 @@
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
-
 import utils
 #pointer naar factuur.data voor debuggen
 data = None
@@ -79,3 +78,45 @@ class Window(QtGui.QWidget):
 		window.show()
 		self.hide()
 		window.show()
+
+class Orderlijst(QtGui.QGridLayout):
+	def __init__(self,data,parent=None):
+		super(Orderlijst,self).__init__(parent)
+		self.setAlignment(Qt.AlignTop)
+		self.Data = data
+
+	def removeItem(self,item):
+		item.Aantal -= 1
+		if item.Aantal == 0:
+			self.Data.remove(item)
+		self.rebuild()
+
+	def addItem(self,item):
+		item.Aantal += 1
+		self.rebuild()
+
+	def rebuild(self):
+		for i in reversed(range(self.count())):
+			notNeeded = self.takeAt(i).widget().setParent(None)
+		rij=0
+		for o in self.Data:
+			removebutton = QtGui.QPushButton("-")
+			removebutton.setFixedSize(40,40)
+			removebutton.clicked.connect(lambda s, orde=o: self.removeItem(orde))
+
+			countlabel = QtGui.QLabel(str(o.Aantal))
+			countlabel.setFixedSize(25,40)
+
+			addbutton = QtGui.QPushButton("+")
+			addbutton.setFixedSize(40,40)
+			addbutton.clicked.connect(lambda s, orde=o: self.addItem(orde))
+
+			itemlabel = QtGui.QLabel(utils.clean(o.Name))
+			itemlabel.setWordWrap(True)
+
+			self.addWidget(removebutton,rij,0)
+			self.addWidget(countlabel,rij,1)
+			self.addWidget(addbutton,rij,2)
+			self.addWidget(itemlabel,rij,3)
+
+			rij+=1

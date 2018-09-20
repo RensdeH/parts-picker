@@ -15,6 +15,7 @@ import api
 import utils
 import dialogs
 import windowClass
+import Orderlijst
 #constants
 ITEMS_PER_RIJ = 5
 
@@ -25,7 +26,7 @@ customerWindow = windowClass.Window("Klant kiezen")
 vrijveldWindow = windowClass.Window("Custom producten")
 urenWindow = windowClass.Window("Uren & Auto")
 
-orderlijst = QtGui.QGridLayout()
+
 werkLayout = QtGui.QGridLayout()
 vrijVeldLayout = QtGui.QGridLayout()
 orderDisplay = QtGui.QLabel()
@@ -36,6 +37,8 @@ productenLijst = []
 data = {}
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
+data['Artikelen'] = []
+orderlijst = windowClass.Orderlijst(data['Artikelen'])
 
 def main():
 	windowClass.data = data
@@ -50,10 +53,9 @@ def main():
 	n2 = dt.datetime.now()
 	print("Declaring:"+str((n2-n1).total_seconds()))
 	productenLijst.extend(loadArtikels())
-	data['Artikelen'] = []
+
 	data['Werk'] = []
 	data['Custom'] = []
-	data['preCustom'] = []
 	n3 = dt.datetime.now()
 	print("Get artikelen:"+str((n3-n2).total_seconds()))
 	Cids.update(defineTabs(productenLijst))
@@ -211,7 +213,6 @@ def productWindowSetup():
 	scroll2.setWidget(groupbox2)
 	scroll2.setWidgetResizable(True)
 
-	orderlijst.setAlignment(Qt.AlignTop)
 	groupbox2.setLayout(orderlijst)
 
 	resetorder = QtGui.QPushButton("Leegmaken")
@@ -232,29 +233,30 @@ def productWindowSetup():
 	productWindow.totalLayout.addLayout(leftLayout,3)
 	productWindow.totalLayout.addLayout(rightlayout,1)
 
-def addVrijVeld():
-	print(len(app.allWidgets()))
+def addPreCustomProduct(product):
+	newProduct = utils.PreCustomItem(1,product)
+	addProduct(newProduct)
+
+def addCustomProduct():
 	product = dialogs.vrijVeldDialog()
-	if product == None:
+	if product is None:
 		return
-	data['Custom'].append(product)
-	rebuildVrijVeldWindow()
+	addProduct(product)
 
-def addCustomProduct(product):
-	if product not in list(map(lambda x: x['item'],data['preCustom'])):
-		data['preCustom'].append({'Aantal':1,'item':product})
+def addProduct(product):
+	if product.Item is None:
+		data['Custom'].append(product)
 	else:
-		for o in data['preCustom']:
-			if o['item'] is product:
-				o['Aantal'] = o['Aantal']+1
-				break
+		if product.Item not in list(map(lambda x: x.Item,data['Custom'])):
+			data['Custom'].append(product)
+		else:
+			for o in data['Custom']:
+				if o.Item is product.Item:
+					o.Aantal = o.Aantal + 1
+					break
 	rebuildVrijVeldWindow()
 
-def removePreCustom(product):
-	data['preCustom'].remove(product)
-	rebuildVrijVeldWindow()
-
-def removeVrijVeld(product):
+def removeProduct(product):
 	data['Custom'].remove(product)
 	rebuildVrijVeldWindow()
 
@@ -262,41 +264,22 @@ def rebuildVrijVeldWindow():
 	for i in reversed(range(vrijVeldLayout.count())):
 		notNeeded = vrijVeldLayout.takeAt(i).widget().setParent(None)
 	rij = 0
-	#werk = (floatUren,stringOmschrijving)
-	if data['Custom'] == [] and data['preCustom'] == []:
+	if data['Custom'] == []:
 		geenCustom = QtGui.QLabel('Geen Extra Producten toegevoegd')
 		vrijVeldLayout.addWidget(geenCustom)
 
 	for product in data['Custom']:
-		countlabel = QtGui.QLabel(str(product[0]))
+		countlabel = QtGui.QLabel(str(product.Aantal))
 		countlabel.setFixedSize(25,40)
 
-		omschrijvingLabel = QtGui.QLabel(utils.clean(product[1]))
+		omschrijvingLabel = QtGui.QLabel(utils.clean(product.Name))
 		omschrijvingLabel.setWordWrap(True)
 
-		prijsLabel = QtGui.QLabel('\xe2\x82\xac'.decode('utf8')+str(product[2]))
+		prijsLabel = QtGui.QLabel('\xe2\x82\xac'.decode('utf8')+str(product.Prijs))
 		prijsLabel.setAlignment(Qt.AlignRight)
 		removebutton = QtGui.QPushButton("X")
 		removebutton.setFixedSize(40,40)
-		removebutton.clicked.connect(lambda s, w=product: removeVrijVeld(w))
-
-		vrijVeldLayout.addWidget(countlabel,rij,0)
-		vrijVeldLayout.addWidget(omschrijvingLabel,rij,1)
-		vrijVeldLayout.addWidget(prijsLabel,rij,2)
-		vrijVeldLayout.addWidget(removebutton,rij,3)
-		rij+=1
-	for product in data['preCustom']:
-		countlabel = QtGui.QLabel(str(product['Aantal']))
-		countlabel.setFixedSize(25,40)
-
-		omschrijvingLabel = QtGui.QLabel(utils.clean(product['item']['name']))
-		omschrijvingLabel.setWordWrap(True)
-
-		prijsLabel = QtGui.QLabel('\xe2\x82\xac'.decode('utf8')+str(product['item']['Prijs']))
-		prijsLabel.setAlignment(Qt.AlignRight)
-		removebutton = QtGui.QPushButton("X")
-		removebutton.setFixedSize(40,40)
-		removebutton.clicked.connect(lambda s, w=product: removePreCustom(w))
+		removebutton.clicked.connect(lambda s, w=product: removeProduct(w))
 
 		vrijVeldLayout.addWidget(countlabel,rij,0)
 		vrijVeldLayout.addWidget(omschrijvingLabel,rij,1)
@@ -324,7 +307,7 @@ def vrijveldWindowSetup():
 
 	addVrij = QtGui.QPushButton("Product toevoegen")
 	addVrij.setFixedHeight(100)
-	addVrij.clicked.connect(addVrijVeld)
+	addVrij.clicked.connect(addCustomProduct)
 
 	scrollGroup = QtGui.QGroupBox()
 	scrollGroup.setLayout(vrijVeldLayout)
@@ -592,7 +575,7 @@ def makeButton2(item):
 			return 'Resources/nopic.jpg'
 
 	b1 = QtGui.QPushButton()
-	b1.clicked.connect(lambda: addCustomProduct(item))
+	b1.clicked.connect(lambda: addPreCustomProduct(item))
 	b1.setFixedSize(100,100)
 	b1.setAutoFillBackground(True)
 	b1.setFocusPolicy(Qt.NoFocus)
@@ -659,54 +642,18 @@ def makeLabel(item):
 ################################################################
 
 def itemClicked(item):
-	if item not in list(map(lambda x: x['item'],data['Artikelen'])):
-		data['Artikelen'].append({'Aantal':1,'item':item})
+	product = utils.WebshopItem(1,item)
+	if product.Item not in list(map(lambda x: x.Item,data['Artikelen'])):
+		data['Artikelen'].append(product)
 	else:
 		for o in data['Artikelen']:
-			if o['item'] is item:
-				o['Aantal'] = o['Aantal']+1
+			if o.Item is product.Item:
+				o.Aantal = o.Aantal + 1
 				break
-
-	rebuildOrderLijst()
-
-def removeItem(item):
-	item['Aantal']-=1
-	if item['Aantal']==0:
-		data['Artikelen'].remove(item)
-	rebuildOrderLijst()
-
-def addItem(item):
-	item['Aantal']+=1
-	rebuildOrderLijst()
+	orderlijst.rebuild()
 
 def emptyOrder():
 	del data['Artikelen'][:]
-	rebuildOrderLijst()
-
-def rebuildOrderLijst():
-	for i in reversed(range(orderlijst.count())):
-		notNeeded = orderlijst.takeAt(i).widget().setParent(None)
-	rij=0
-	for o in data['Artikelen']:
-		removebutton = QtGui.QPushButton("-")
-		removebutton.setFixedSize(40,40)
-		removebutton.clicked.connect(lambda s, orde=o: removeItem(orde))
-
-		countlabel = QtGui.QLabel(str(o["Aantal"]))
-		countlabel.setFixedSize(25,40)
-
-		addbutton = QtGui.QPushButton("+")
-		addbutton.setFixedSize(40,40)
-		addbutton.clicked.connect(lambda s, orde=o: addItem(orde))
-
-		itemlabel = QtGui.QLabel(utils.clean(o['item']['name']))
-		itemlabel.setWordWrap(True)
-
-		orderlijst.addWidget(removebutton,rij,0)
-		orderlijst.addWidget(countlabel,rij,1)
-		orderlijst.addWidget(addbutton,rij,2)
-		orderlijst.addWidget(itemlabel,rij,3)
-
-		rij+=1
+	orderlijst.rebuild()
 
 main()
