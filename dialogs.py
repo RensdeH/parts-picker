@@ -90,7 +90,7 @@ class VrijVeldDialog(baseDialog):
 		self.editPrijs.setLocale(local)
 		self.editPrijs.setSingleStep(float(1))
 		self.editPrijs.setMinimum(0)
-		self.editPrijs.setMaximum(1000)
+		self.editPrijs.setMaximum(100000)
 		self.editPrijs.setDecimals(2)
 		self.editPrijs.setFixedWidth(100)
 
