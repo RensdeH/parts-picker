@@ -18,6 +18,29 @@ class TypeFactuur(Enum):
 	Afdrukvoorbeeld = 2
 	Kostenraming = 3
 
+class OrderItem(object):
+	def __init__(self, aantal, name, prijs, tax):
+		self.Aantal = aantal
+		self.Name = name
+		self.Prijs = prijs
+		self.Tax = tax
+		self.Item = None
+
+	def strLatex(self):
+		return '\unitrow{' + self.Name + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}{}'
+
+	def totaalPrijs(self):
+		return self.Aantal * self.Prijs
+
+class PreCustomItem(OrderItem):
+	def __init__(self,aantal,item):
+		super(PreCustomItem,self).__init__(aantal,item['Naam'],item['Prijs'],item['tax'])
+		self.Item = item
+
+class WebshopItem(OrderItem):
+	def __init__(self,aantal,item):
+		super(WebshopItem,self).__init__(aantal,item['name'],float(item['price']['default']),float(item['tax']))
+		self.Item = item
 
 def clean(name):
 	name = name.replace("Mazda","")
@@ -46,9 +69,10 @@ def readfile(filename):
 	return s
 
 def printData(data):
-	for key in ['Auto','Werk','Klant','Artikelen']:
+	for key in ['Custom','preCustom']:
 		if key in data:
 			print(data[key])
+	print('---------')
 
 #Templates voor soorten facturen
 #emptyCustomer

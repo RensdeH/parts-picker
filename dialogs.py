@@ -60,10 +60,6 @@ class UrenDialog(baseDialog):
 		self.returnList.append(self.edit_first.value)
 		self.returnList.append(self.edit_second.text)
 
-	@staticmethod
-	def get_data():
-		return UrenDialog().getData()
-
 class VrijVeldDialog(baseDialog):
 	def __init__(self, parent=None):
 		def setTax(tax):
@@ -82,7 +78,6 @@ class VrijVeldDialog(baseDialog):
 		self.totalLayout.addRow(QtGui.QLabel('Aantal'),self.edit_first)
 
 		self.edit_second = QtGui.QLineEdit(parent = self)
-
 		self.totalLayout.addRow(QtGui.QLabel('Naam'),self.edit_second)
 
 		self.editPrijs = QtGui.QDoubleSpinBox(parent = self)
@@ -117,7 +112,11 @@ class VrijVeldDialog(baseDialog):
 
 	@staticmethod
 	def get_data():
-		return VrijVeldDialog().getData()
+		dataList = VrijVeldDialog().getData()
+		if dataList == None:
+			return None
+		product = utils.OrderItem(dataList[0],dataList[1],dataList[2],dataList[3])
+		return product
 
 class SearchDialog(baseDialog):
 	def __init__(self, parent=None):
@@ -138,21 +137,14 @@ class SearchDialog(baseDialog):
 		self.returnList.append(self.editZoekNaar.text)
 		self.returnList.append(self.zoekAlles.isChecked)
 
-	@staticmethod
-	def get_data():
-		return SearchDialog().getData()
-
 def urenDialog():
-	return UrenDialog.get_data()  # window is value from edit field
+	return UrenDialog().getData()  # window is value from edit field
 
 def vrijVeldDialog():
 	return VrijVeldDialog.get_data()
 
 def zoekDialog():
-	return SearchDialog.get_data()
-
-def errorDialog():
-	QtGui.QMessageBox.warning(None,"Geen soort gekozen",'Je hebt geen soort factuur (I,A,R,V) gekozen')
+	return SearchDialog().getData()
 
 def controleerJsonLayout(data):
 	layout = QtGui.QFormLayout()
