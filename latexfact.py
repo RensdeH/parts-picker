@@ -1,20 +1,8 @@
 import subprocess
 import utils
 import datetime as dt
-import api
 import os
 import shutil
-import dialogs
-
-#deprecated
-def mockfact():
-	order = utils.readJson('Resources/mockOrder.json')[0:9]
-	comp = []
-	for item in order:
-		comp.append(utils.WebshopItem(2,item))
-	klant = utils.readJson('Resources/Klanten/mockCustomer.json')
-	soort = utils.SoortFactuur.Reparatie
-	omschrijving = 'Mock Factuur'
 
 def startFactuur(data,typeFactuur):
 	if typeFactuur != utils.TypeFactuur.Afdrukvoorbeeld:
@@ -158,11 +146,14 @@ def makeOrderText(order,werk,auto,custom, data):
 			uitbtwgeen += o.totaalPrijs()
 
 	if werk != []:
-		orderText += r"""
-		\feetype{Gewerkte Uren}"""
-		for w in werk:
-			orderText += r"""\hourrow{Werkplaatstarief """+w[1]+'}{'+str(w[0])+'}{62.5}'
-			uitbtwhoog += float(62.5) * w[0]
+		orderText += r"""\feetype{Gewerkte Uren}"""
+
+	for o in werk:
+		orderText += o.strLatex()
+		if o.Tax == 21:
+			uitbtwhoog += o.totaalPrijs()
+		elif o.Tax == 0:
+			uitbtwgeen += o.totaalPrijs()
 
 	if auto['Model'] != '':
 		if data['soortFactuur'] == utils.SoortFactuur.Inkoop:

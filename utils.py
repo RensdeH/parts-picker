@@ -1,6 +1,3 @@
-############################################################
-#-------------------------Utils-----------------------------
-############################################################
 import os.path
 import json
 from collections import OrderedDict
@@ -42,6 +39,27 @@ class WebshopItem(OrderItem):
 		super(WebshopItem,self).__init__(aantal,item['name'],float(item['price']['default']),float(item['tax']))
 		self.Item = item
 
+class UrenItem(OrderItem):
+	def __init__(self,aantal,omschrijving,prijs = 62.50,tax=21):
+		super(UrenItem,self).__init__(aantal,omschrijving,prijs,tax)
+
+	def strLatex(self):
+		return r"""\hourrow{Werkplaatstarief """ + self.Name + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}'
+
+def makePreCustomItem(aantal,item):
+	if 'Naam' in item and 'Prijs' in item and 'tax' in item:
+		return PreCustomItem(aantal,item)
+	print("Error Creating PreCustomItem")
+	return None
+
+def makeWebshopItem(aantal,item):
+	if 'name' in item and 'price' in item and 'tax' in item:
+		return WebshopItem(aantal,item)
+	print("Error Creating WebshopItem")
+	if 'sku' in item:
+		print(item['sku'])
+	return None
+
 def clean(name):
 	name = name.replace("Mazda","")
 	name = name.replace("MX5","")
@@ -73,14 +91,6 @@ def printData(data):
 		if key in data:
 			print(data[key])
 	print('---------')
-
-#Templates voor soorten facturen
-#emptyCustomer
-#emptyAuto
-#reparatieCustomer
-#ArtikelenCustomer
-#InkoopAuto
-#VerkoopAuto
 
 def makeMockOrder(data):
 	writeJson('Resources/mockOrder.json',data)
@@ -124,9 +134,6 @@ def makeCompany():
 	data['BTW-nr.'] = 'NL856495621B01'
 	data['IBAN'] = 'NL63RABO0108245489'
 	data['BIC'] = 'RABONL2U'
-	#Niet nodig voor bottom.txt
-	data['Telefoon'] = ''
-	data['Bedrijfsnaam'] = ""
 	return data
 
 def makeEmptyCompany():
@@ -141,9 +148,6 @@ def makeEmptyCompany():
 	data['BTW-nr.'] = ''
 	data['IBAN'] = ''
 	data['BIC'] = ''
-	#Niet nodig voor bottom.txt
-	data['Telefoon'] = ''
-	data['Bedrijfsnaam'] = ""
 	writeJson('Resources/company.json',makeCompany())
 	return data
 
@@ -210,15 +214,8 @@ def makeCustomProducts():
 	writeJson('Resources/Custom/custom.json',data)
 
 def makeCounters():
-	#TODO check if file is correct
-	#if not os.path.isfile('Resources/counters.json'):
-	#	return
 	data = {}
 	data['C'] = 100
-	data['R'] = 300
-	data['V'] = 200
-	data['I'] = 300
-	data['A'] = 100
 	data['year'] = 2018
 	writeJson('Resources/counters.json',data)
 	return data

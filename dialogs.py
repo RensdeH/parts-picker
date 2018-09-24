@@ -42,68 +42,68 @@ class baseDialog(QtGui.QDialog):
 class UrenDialog(baseDialog):
 	def __init__(self, parent=None):
 		super(UrenDialog,self).__init__(parent)
+		self.editUren = QtGui.QDoubleSpinBox()
+		self.editUren.setLocale(QLocale.c())
+		self.editUren.setSingleStep(float(0.25))
+		self.editUren.setMinimum(0)
+		self.editUren.setDecimals(2)
+		self.editUren.setFixedWidth(100)
 
-		self.edit_first = QtGui.QDoubleSpinBox()
-		local = QLocale.c()
-		self.edit_first.setLocale(local)
-		self.edit_first.setSingleStep(float(0.25))
-		self.edit_first.setMinimum(0)
-		self.edit_first.setDecimals(2)
-		self.edit_first.setFixedWidth(100)
+		self.editOmschrijving = QtGui.QLineEdit()
 
-		self.totalLayout.addRow(QtGui.QLabel('Uren'),self.edit_first)
-
-		self.edit_second = QtGui.QLineEdit()
-		self.totalLayout.addRow(QtGui.QLabel('Omschrijving'),self.edit_second)
+		self.totalLayout.addRow(QtGui.QLabel('Uren'),self.editUren)
+		self.totalLayout.addRow(QtGui.QLabel('Omschrijving'),self.editOmschrijving)
 		self.totalLayout.addRow(self.applyButton)
 
-		self.returnList.append(self.edit_first.value)
-		self.returnList.append(self.edit_second.text)
+		self.returnList.append(self.editUren.value)
+		self.returnList.append(self.editOmschrijving.text)
+
+	@staticmethod
+	def get_data():
+		dataList = UrenDialog().getData()
+		if dataList == None:
+			return None
+		product = utils.UrenItem(dataList[0],dataList[1])
+		return product
 
 class VrijVeldDialog(baseDialog):
 	def __init__(self, parent=None):
 		def setTax(tax):
 			self.tax = tax
 		super(VrijVeldDialog,self).__init__(parent)
+		self.editAantal = QtGui.QDoubleSpinBox(parent = self)
+		self.editAantal.setLocale(QLocale.c())
+		self.editAantal.setSingleStep(float(1))
+		self.editAantal.setMinimum(1)
+		self.editAantal.setDecimals(1)
+		self.editAantal.setValue(1)
+		self.editAantal.setFixedWidth(100)
 
-		self.edit_first = QtGui.QDoubleSpinBox(parent = self)
-		local = QLocale.c()
-		self.edit_first.setLocale(local)
-		self.edit_first.setSingleStep(float(1))
-		self.edit_first.setMinimum(1)
-		self.edit_first.setDecimals(1)
-		self.edit_first.setValue(1)
-		self.edit_first.setFixedWidth(100)
-
-		self.totalLayout.addRow(QtGui.QLabel('Aantal'),self.edit_first)
-
-		self.edit_second = QtGui.QLineEdit(parent = self)
-		self.totalLayout.addRow(QtGui.QLabel('Naam'),self.edit_second)
+		self.editNaam = QtGui.QLineEdit(parent = self)
 
 		self.editPrijs = QtGui.QDoubleSpinBox(parent = self)
-		local = QLocale.c()
-		self.editPrijs.setLocale(local)
+		self.editPrijs.setLocale(QLocale.c())
 		self.editPrijs.setSingleStep(float(1))
 		self.editPrijs.setMinimum(0)
 		self.editPrijs.setMaximum(100000)
 		self.editPrijs.setDecimals(2)
 		self.editPrijs.setFixedWidth(100)
 
-		self.totalLayout.addRow(QtGui.QLabel('Prijs per stuk'),self.editPrijs)
-
 		self.tax = 0
 		self.tax0 = QtGui.QRadioButton('BTW margeregeling',parent=self)
 		self.tax21 = QtGui.QRadioButton('BTW 21%',parent=self)
 		self.tax0.clicked.connect(lambda s : setTax(0))
 		self.tax21.clicked.connect(lambda s : setTax(21))
-
 		self.tax0.toggle()
 
+		self.totalLayout.addRow(QtGui.QLabel('Aantal'),self.editAantal)
+		self.totalLayout.addRow(QtGui.QLabel('Naam'),self.editNaam)
+		self.totalLayout.addRow(QtGui.QLabel('Prijs per stuk'),self.editPrijs)
 		self.totalLayout.addRow(self.tax0,self.tax21)
 		self.totalLayout.addRow(self.applyButton)
 
-		self.returnList.append(self.edit_first.value)
-		self.returnList.append(self.edit_second.text)
+		self.returnList.append(self.editAantal.value)
+		self.returnList.append(self.editNaam.text)
 		self.returnList.append(self.editPrijs.value)
 		self.returnList.append(self.getTax)
 
@@ -124,7 +124,6 @@ class SearchDialog(baseDialog):
 			if z != '':
 				self.done(1)
 		super(SearchDialog,self).__init__(parent)
-
 		self.zoekNaar = QtGui.QLabel('Zoeken naar:',parent=self)
 		self.editZoekNaar = QtGui.QLineEdit(parent=self)
 		self.editZoekNaar.setFocus()
@@ -138,7 +137,7 @@ class SearchDialog(baseDialog):
 		self.returnList.append(self.zoekAlles.isChecked)
 
 def urenDialog():
-	return UrenDialog().getData()  # window is value from edit field
+	return UrenDialog.get_data()  # window is value from edit field
 
 def vrijVeldDialog():
 	return VrijVeldDialog.get_data()

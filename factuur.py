@@ -1,11 +1,10 @@
+#debugging tool
+#print(len(app.allWidgets()))
 #library imports
 import datetime as dt
 n1 = dt.datetime.now()
 import sys
-import requests
 import os.path
-import itertools
-
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 
@@ -15,50 +14,51 @@ import api
 import utils
 import dialogs
 import windowClass
-import Orderlijst
-#constants
-ITEMS_PER_RIJ = 5
-
-#global QtGui Widgets
-app = QtGui.QApplication(sys.argv)
-productWindow = windowClass.Window("Producten kiezen")
-customerWindow = windowClass.Window("Klant kiezen")
-vrijveldWindow = windowClass.Window("Custom producten")
-urenWindow = windowClass.Window("Uren & Auto")
-
-
-werkLayout = QtGui.QGridLayout()
-vrijVeldLayout = QtGui.QGridLayout()
-orderDisplay = QtGui.QLabel()
-tabs = QtGui.QTabWidget()
 
 tablist = []
-productenLijst = []
+webshopLijst = []
+customLijst = []
 data = {}
 Cids = {} # key: catId, value: [articles]
 catNames = {} #key: catId, value:catName
 data['Artikelen'] = []
-orderlijst = windowClass.Orderlijst(data['Artikelen'])
+data['Custom'] = []
+data['Werk'] = []
+
+app = QtGui.QApplication(sys.argv)
+tabs = QtGui.QTabWidget()
+productWindow = windowClass.Window("Producten kiezen")
+customerWindow = windowClass.Window("Klant kiezen")
+vrijveldWindow = windowClass.Window("Custom producten")
+urenWindow = windowClass.Window("Uren & Auto")
+werkLayout = windowClass.werkLijst(data['Werk'])
+orderlijst = windowClass.productLijst(data['Artikelen'])
+vrijVeldLayout = windowClass.vrijVeldLijst(data['Custom'])
 
 def main():
 	windowClass.data = data
 	def loadArtikels(silent=True):
-		data = utils.readJson('Resources/Artikelen.json')
-		if data == {}:
-			data = api.getArtikels(silent=silent)
-			utils.writeJson('Resources/Artikelen.json',data)
-		return data
+		webshopProducts = utils.readJson('Resources/Artikelen.json')
+		customProducts = utils.readJson('Resources/Custom/custom.json')
+		if webshopProducts == {}:
+			webshopProducts = api.getArtikels(silent=silent)
+			utils.writeJson('Resources/Artikelen.json',webshopProducts)
+		for d in webshopProducts:
+			item = utils.makeWebshopItem(1,d)
+			if item is not None:
+				webshopLijst.append(item)
+		for d in customProducts:
+			item = utils.makePreCustomItem(1,d)
+			if item is not None:
+				customLijst.append(item)
 
 	app.setWindowIcon(QtGui.QIcon('Resources/icon.png'))
 	n2 = dt.datetime.now()
 	print("Declaring:"+str((n2-n1).total_seconds()))
-	productenLijst.extend(loadArtikels())
-
-	data['Werk'] = []
-	data['Custom'] = []
+	loadArtikels()
 	n3 = dt.datetime.now()
 	print("Get artikelen:"+str((n3-n2).total_seconds()))
-	Cids.update(defineTabs(productenLijst))
+	Cids.update(defineTabs(webshopLijst))
 	n4 = dt.datetime.now()
 	print("Define Tabs:"+str((n4-n3).total_seconds()))
 	fillTabs(Cids)
@@ -76,63 +76,28 @@ def main():
 	print("Show Window:"+str((n7-n6).total_seconds()))
 	print("Total Time:"+str((n7-n1).total_seconds()))
 	sys.exit(app.exec_())
-	#debugging tool
-	#print(len(app.allWidgets()))
 
 ######################################################
 #-----------------------Setup-------------------------
 ######################################################
 
-#-------------------Werklijst Display-----------------
+def addCustomProduct():
+	product = dialogs.vrijVeldDialog()
+	if product is None:
+		return
+	data['Custom'].append(product)
+	vrijVeldLayout.rebuild()
 
 def addUren():
 	werk = dialogs.urenDialog()
 	if werk == None:
 		return
 	data['Werk'].append(werk)
-	rebuildWerkUrenWindow()
+	werkLayout.rebuild()
 
-def removeUren(werk):
-	data['Werk'].remove(werk)
-	rebuildWerkUrenWindow()
-
-def editUren(werk):
-	werkd = dialogs.urenDialog()
-	if werkd == None:
-		return
-	data['Werk'].remove(werk)
-	data['Werk'].append(werkd)
-	rebuildWerkUrenWindow()
-
-def rebuildWerkUrenWindow():
-	for i in reversed(range(werkLayout.count())):
-		notNeeded = werkLayout.takeAt(i).widget().setParent(None)
-	rij = 0
-	#werk = (floatUren,stringOmschrijving)
-	if data['Werk'] == []:
-		geenWerk = QtGui.QLabel('Geen werkuren toegevoegd')
-		werkLayout.addWidget(geenWerk)
-
-	for werk in data['Werk']:
-		countlabel = QtGui.QLabel(str(werk[0]))
-		countlabel.setFixedSize(25,40)
-
-		omschrijvingLabel = QtGui.QLabel(utils.clean(werk[1]))
-		omschrijvingLabel.setWordWrap(True)
-
-		editButton = QtGui.QPushButton("edit")
-		editButton.setFixedSize(40,40)
-		editButton.clicked.connect(lambda s, w=werk: editUren(w))
-
-		removebutton = QtGui.QPushButton("X")
-		removebutton.setFixedSize(40,40)
-		removebutton.clicked.connect(lambda s, w=werk: removeUren(w))
-
-		werkLayout.addWidget(countlabel,rij,0)
-		werkLayout.addWidget(omschrijvingLabel,rij,1)
-		werkLayout.addWidget(editButton,rij,2)
-		werkLayout.addWidget(removebutton,rij,3)
-		rij+=1
+def emptyOrder():
+	del data['Artikelen'][:]
+	orderlijst.rebuild()
 
 #--------------------------Setup----------------------
 
@@ -163,11 +128,9 @@ def urenWindowSetup():
 	bestaandeAutoKiezen.clicked.connect(lambda s, edit = rightLayout: kiesAuto(edit))
 	bestaandeAutoKiezen.setFixedHeight(100)
 
-	addUrenb = QtGui.QPushButton("Werk toevoegen")
-	addUrenb.setFixedHeight(100)
-	addUrenb.clicked.connect(addUren)
-
-	rebuildWerkUrenWindow()
+	urenButton = QtGui.QPushButton("Werk toevoegen")
+	urenButton.setFixedHeight(100)
+	urenButton.clicked.connect(addUren)
 
 	scrollGroup = QtGui.QGroupBox()
 	scrollGroup.setLayout(werkLayout)
@@ -175,17 +138,20 @@ def urenWindowSetup():
 	werkScroll.setWidget(scrollGroup)
 	werkScroll.setWidgetResizable(True)
 
-	leftLayout.addWidget(urenWindow.vorigeView,1)
-	leftLayout.addWidget(werkScroll,4)
-	leftLayout.addWidget(addUrenb,1)
+	voorbeeldButton = QtGui.QPushButton("Afdrukvoorbeeld Factuur")
+	voorbeeldButton.setFixedHeight(100)
+	voorbeeldButton.clicked.connect(lambda : saveAuto(rightLayout,utils.TypeFactuur.Afdrukvoorbeeld))
 
 	prijsOpgaveButton = QtGui.QPushButton("Kostenraming")
 	prijsOpgaveButton.setFixedHeight(100)
 	prijsOpgaveButton.clicked.connect(lambda : saveAuto(rightLayout,utils.TypeFactuur.Kostenraming))
 
-	voorbeeldButton = QtGui.QPushButton("Afdrukvoorbeeld Factuur")
-	voorbeeldButton.setFixedHeight(100)
-	voorbeeldButton.clicked.connect(lambda : saveAuto(rightLayout,utils.TypeFactuur.Afdrukvoorbeeld))
+	urenWindow.setOpslaan(lambda : saveAuto(rightLayout,utils.TypeFactuur.Definitief))
+	urenWindow.volgendeView.setText("Definitieve Factuur")
+
+	leftLayout.addWidget(urenWindow.vorigeView,1)
+	leftLayout.addWidget(werkScroll,4)
+	leftLayout.addWidget(urenButton,1)
 
 	rightLayout.addWidget(bestaandeAutoKiezen,1)
 	rightLayout.addLayout(autoEdit,4)
@@ -196,23 +162,16 @@ def urenWindowSetup():
 	urenWindow.totalLayout.insertLayout(1,leftLayout)
 	urenWindow.totalLayout.insertLayout(2,rightLayout)
 
-	urenWindow.setOpslaan(lambda : saveAuto(rightLayout,utils.TypeFactuur.Definitief))
-	urenWindow.volgendeView.setText("Definitieve Factuur")
-
-	werkLayout.setAlignment(Qt.AlignTop)
-
 def productWindowSetup():
 	leftLayout = QtGui.QVBoxLayout()
 	rightlayout = QtGui.QVBoxLayout()
 
-	leftLayout.addWidget(productWindow.vorigeView)
-	leftLayout.addWidget(tabs,4)
+	tabs.setFocusPolicy(Qt.NoFocus)
 
 	groupbox2 = QtGui.QGroupBox()
 	scroll2 = QtGui.QScrollArea()
 	scroll2.setWidget(groupbox2)
 	scroll2.setWidgetResizable(True)
-
 	groupbox2.setLayout(orderlijst)
 
 	resetorder = QtGui.QPushButton("Leegmaken")
@@ -224,90 +183,25 @@ def productWindowSetup():
 	productWindow.addAction(actie)
 	actie.triggered.connect(lambda: searchTab())
 
+	leftLayout.addWidget(productWindow.vorigeView)
+	leftLayout.addWidget(tabs,4)
 	rightlayout.addWidget(resetorder)
 	rightlayout.addWidget(scroll2)
 	rightlayout.addWidget(productWindow.volgendeView)
 
-	tabs.setFocusPolicy(Qt.NoFocus)
-
 	productWindow.totalLayout.addLayout(leftLayout,3)
 	productWindow.totalLayout.addLayout(rightlayout,1)
-
-def addPreCustomProduct(product):
-	newProduct = utils.PreCustomItem(1,product)
-	addProduct(newProduct)
-
-def addCustomProduct():
-	product = dialogs.vrijVeldDialog()
-	if product is None:
-		return
-	addProduct(product)
-
-def addProduct(product):
-	if product.Item is None:
-		data['Custom'].append(product)
-	else:
-		if product.Item not in list(map(lambda x: x.Item,data['Custom'])):
-			data['Custom'].append(product)
-		else:
-			for o in data['Custom']:
-				if o.Item is product.Item:
-					o.Aantal = o.Aantal + 1
-					break
-	rebuildVrijVeldWindow()
-
-def removeProduct(product):
-	data['Custom'].remove(product)
-	rebuildVrijVeldWindow()
-
-def rebuildVrijVeldWindow():
-	for i in reversed(range(vrijVeldLayout.count())):
-		notNeeded = vrijVeldLayout.takeAt(i).widget().setParent(None)
-	rij = 0
-	if data['Custom'] == []:
-		geenCustom = QtGui.QLabel('Geen Extra Producten toegevoegd')
-		vrijVeldLayout.addWidget(geenCustom)
-
-	for product in data['Custom']:
-		countlabel = QtGui.QLabel(str(product.Aantal))
-		countlabel.setFixedSize(25,40)
-
-		omschrijvingLabel = QtGui.QLabel(utils.clean(product.Name))
-		omschrijvingLabel.setWordWrap(True)
-
-		prijsLabel = QtGui.QLabel('\xe2\x82\xac'.decode('utf8')+str(product.Prijs))
-		prijsLabel.setAlignment(Qt.AlignRight)
-		removebutton = QtGui.QPushButton("X")
-		removebutton.setFixedSize(40,40)
-		removebutton.clicked.connect(lambda s, w=product: removeProduct(w))
-
-		vrijVeldLayout.addWidget(countlabel,rij,0)
-		vrijVeldLayout.addWidget(omschrijvingLabel,rij,1)
-		vrijVeldLayout.addWidget(prijsLabel,rij,2)
-		vrijVeldLayout.addWidget(removebutton,rij,3)
-		rij+=1
 
 def vrijveldWindowSetup():
 	leftLayout = QtGui.QVBoxLayout()
 	rightLayout = QtGui.QVBoxLayout()
 
-	leftLayout.addWidget(vrijveldWindow.vorigeView,1)
-
-	customProducts = utils.readJson('Resources/Custom/custom.json')
-
 	scroll = QtGui.QScrollArea()
 	groupbox = QtGui.QGroupBox(scroll)
-	grid = QtGui.QGridLayout(groupbox)
-
+	grid = ProductGrid(customLijst,vrijVeldLayout,data['Custom'],3)
+	groupbox.setLayout(grid)
 	scroll.setWidget(groupbox)
 	scroll.setWidgetResizable(True)
-
-	makeGrid2(customProducts,scroll,None)
-	leftLayout.addWidget(scroll)
-
-	addVrij = QtGui.QPushButton("Product toevoegen")
-	addVrij.setFixedHeight(100)
-	addVrij.clicked.connect(addCustomProduct)
 
 	scrollGroup = QtGui.QGroupBox()
 	scrollGroup.setLayout(vrijVeldLayout)
@@ -315,13 +209,15 @@ def vrijveldWindowSetup():
 	werkScroll.setWidget(scrollGroup)
 	werkScroll.setWidgetResizable(True)
 
-	rebuildVrijVeldWindow()
+	addVrij = QtGui.QPushButton("Product toevoegen")
+	addVrij.setFixedHeight(100)
+	addVrij.clicked.connect(addCustomProduct)
 
+	leftLayout.addWidget(vrijveldWindow.vorigeView,1)
+	leftLayout.addWidget(scroll)
 	rightLayout.addWidget(werkScroll,5)
 	rightLayout.addWidget(addVrij,1)
 	rightLayout.addWidget(vrijveldWindow.volgendeView,1)
-
-	vrijVeldLayout.setAlignment(Qt.AlignTop)
 
 	vrijveldWindow.totalLayout.addLayout(leftLayout,1)
 	vrijveldWindow.totalLayout.addLayout(rightLayout,1)
@@ -387,20 +283,18 @@ def setVolgorde(volgorde):
 #############################################################
 
 def searchTab():
-	activeData = {}
-
 	activeTab = tabs
 	while type(activeTab.currentWidget()) is QtGui.QTabWidget:
 		activeTab = activeTab.currentWidget()
 
+	activeData = {}
 	activeData['Position'] = activeTab.currentIndex()
 	activeData['CatName'] = activeTab.tabText(activeData['Position'])
 	activeData['Scroll'] = activeTab.currentWidget()
 	activeData['CatId'] = activeData['Scroll'].whatsThis()
 	activeData['Tab'] = activeTab
 	activeData['Color'] = activeTab.tabBar().tabTextColor(activeData['Position'])
-	#lijst = Cids[str(activeCatId)]
-	#text, ok = QtGui.QInputDialog.getText(productWindow,"Zoeken","Zoeken in:" + str(activeCatName))
+
 	zoekJob = dialogs.zoekDialog()
 	if zoekJob is None:
 		return
@@ -408,14 +302,14 @@ def searchTab():
 	zoekAlles = zoekJob[1]
 
 	if zoekJob[1]:
-		zoekLijst = productenLijst
+		zoekLijst = webshopLijst
 	else:
 		zoekLijst = Cids[str(activeData['CatId'])]
 
 	results = []
-	for item in zoekLijst:
-		if text in item['name'].lower() or text in item['description'].lower():
-			results.append(item)
+	for product in zoekLijst:
+		if text in product.Item['name'].lower() or text in product.Item['description'].lower():
+			results.append(product)
 
 	newScroll = makeTab(activeData['CatId'])
 
@@ -431,7 +325,8 @@ def searchTab():
 	l1.setFixedSize(100,100)
 	l1.setWordWrap(True)
 
-	makeGrid(results,newScroll,(b1,l1))
+	grid = ProductGrid(results,orderlijst,data['Artikelen'],5,searchButton = (b1,l1))
+	newScroll.widget().setLayout(grid)
 
 	index = activeTab.insertTab(activeData['Position'],newScroll,'Zoek:'+str(text))
 	if not zoekJob[1]:
@@ -443,10 +338,10 @@ def searchTab():
 
 def previousTab(tabData):
 	scroll = makeTab(tabData['CatId'])
-	makeGrid(Cids[str(tabData['CatId'])],scroll,None)
+	grid = ProductGrid(Cids[str(tabData['CatId'])],orderlijst,data['Artikelen'],5)
+	scroll.widget().setLayout(grid)
 
 	sluitZoeken(scroll,tabData['Tab'],tabData['Position'],catNames[str(tabData['CatId'])],tabData['Color'])
-	print(len(app.allWidgets()))
 
 def sluitZoeken(scrollArea,tab,pos,name,color):
 	zoek = tab.widget(pos)
@@ -464,7 +359,7 @@ def defineTabs(lijst):
 	def listCatIds(lijst):
 		cids = {}
 		for a in lijst:
-			for c in a['categories']:
+			for c in a.Item['categories']:
 				cids.setdefault(str(c['category_id']),[]).append(a)
 		return cids
 
@@ -505,19 +400,16 @@ def fillTabs(cids):
 	if not os.path.exists('Images/'):
 		os.makedirs('Images/')
 	for t in tablist:
-		makeGrid(cids[str(t[0])],t[1],None)
+		grid = ProductGrid(cids[str(t[0])],orderlijst,data['Artikelen'],5)
+		t[1].widget().setLayout(grid)
 	colorTabs(tabs,QtGui.QColor(0,0,0),0)
 
 def colorTabs(tabWid,color,depth):
-	length = tabWid.count()
-	red = color.red()
-	green = color.green()
-	blue = color.blue()
-	for x in range(length):
+	for x in range(tabWid.count()):
 		binaryTab = "00000"+"{0:b}".format(x+1)
-		newRed = (binaryTab[-1]=='1')*128
-		newGreen = (binaryTab[-2]=='1')*128
-		newBlue = (binaryTab[-3]=='1')*128
+		newRed = int(binaryTab[-1])*128
+		newGreen = int(binaryTab[-2])*128
+		newBlue = int(binaryTab[-3])*128
 		newColor = QtGui.QColor(newRed,newGreen,newBlue)
 		if depth == 2:
 			tabWid.tabBar().setTabTextColor(x,color)
@@ -533,127 +425,68 @@ def colorTabs(tabWid,color,depth):
 def makeTab(cid):
 	scroll = QtGui.QScrollArea()
 	groupbox = QtGui.QGroupBox(scroll)
-	grid = QtGui.QGridLayout(groupbox)
 
 	scroll.setWidget(groupbox)
 	scroll.setWidgetResizable(True)
-
 	scroll.setWhatsThis(str(cid))
 	return scroll
 
-def makeGrid2(lijst,scroll,button):
-	grid = scroll.widget().layout()
+class ProductGrid(QtGui.QGridLayout):
+	def __init__(self,products,display,orderLijst,itemsPerRij,searchButton=None,parent=None):
+		super(ProductGrid,self).__init__(parent)
+		self.products = products
+		self.display = display
+		self.orderLijst = orderLijst
 
-	buttons = []
-	if button is not None:
-		buttons.append(button)
+		self.buttons = []
+		if searchButton is not None:
+			self.buttons.append(searchButton)
+		for product in products:
+			b = self.makeButton(product)
+			l = self.makeLabel(product)
+			self.buttons.append((b,l))
 
-	for item in lijst:
-		b = makeButton2(item)
-		l = makeLabel(item)
-		buttons.append((b,l))
+		length = len(self.buttons)
+		itemsPerKolom = int(length / itemsPerRij) + 1
+		for j in range(itemsPerKolom):
+			for i in range(itemsPerRij):
+				if itemsPerRij * j + i > length - 1:
+					return
+				self.addWidget(self.buttons[itemsPerRij * j + i][0], j, 2 * i)
+				self.addWidget(self.buttons[itemsPerRij * j + i][1], j, 2 * i + 1)
 
-	l = len(buttons)
-	itemsPerKolom = int(l / 3) + 1
-	for j in range(itemsPerKolom):
-		for i in range(3):
-			if 3 * j + i > l - 1:
-				return
-			grid.addWidget(buttons[3 * j + i][0], j, 2 * i)
-			grid.addWidget(buttons[3 * j + i][1], j, 2 * i + 1)
+	def makeLabel(self,product):
+		l1 = QtGui.QLabel(utils.clean(product.Name))
+		l1.setFixedSize(100,100)
+		l1.setWordWrap(True)
+		return l1
 
-###############################################################
-#------------------------Single Button-------------------------
-###############################################################
+	def makeButton(self,product):
+		b1 = QtGui.QPushButton()
+		b1.clicked.connect(lambda: self.addOrderProduct(product))
+		b1.setFixedSize(100,100)
+		b1.setAutoFillBackground(True)
+		b1.setFocusPolicy(Qt.NoFocus)
 
-def makeButton2(item):
-	def getImageUrl(item):
-		iurl = 'Resources/Custom/Images/' + str(item['id']) + '.jpg'
-		if os.path.isfile(iurl):
-			return iurl
+		foto = 'Images/' + str(product.Item['id']) + '.jpeg'
+		if not os.path.isfile(foto):
+			foto = 'Resources/nopic.jpg'
+		b1.setIcon(QtGui.QIcon(foto))
+		b1.setStyleSheet("border: none;")
+		b1.setIconSize(QSize(100,100))
+		return b1
+
+	def addOrderProduct(self,product):
+		if product.Item is None:
+			self.orderLijst.append(product)
 		else:
-			return 'Resources/nopic.jpg'
-
-	b1 = QtGui.QPushButton()
-	b1.clicked.connect(lambda: addPreCustomProduct(item))
-	b1.setFixedSize(100,100)
-	b1.setAutoFillBackground(True)
-	b1.setFocusPolicy(Qt.NoFocus)
-
-	foto = getImageUrl(item)
-	b1.setIcon(QtGui.QIcon(foto))
-	b1.setStyleSheet("border: none;")
-	b1.setIconSize(QSize(100,100))
-	return b1
-
-def makeGrid(lijst,scroll,button):
-	grid = scroll.widget().layout()
-
-	buttons = []
-	if button is not None:
-		buttons.append(button)
-
-	for item in lijst:
-		b = makeButton(item)
-		l = makeLabel(item)
-		buttons.append((b,l))
-
-	l = len(buttons)
-	itemsPerKolom = int(l / ITEMS_PER_RIJ) + 1
-	for j in range(itemsPerKolom):
-		for i in range(ITEMS_PER_RIJ):
-			if ITEMS_PER_RIJ * j + i > l - 1:
-				return
-			grid.addWidget(buttons[ITEMS_PER_RIJ * j + i][0], j, 2 * i)
-			grid.addWidget(buttons[ITEMS_PER_RIJ * j + i][1], j, 2 * i + 1)
-
-###############################################################
-#------------------------Single Button-------------------------
-###############################################################
-
-def makeButton(item):
-	def getImageUrl(item):
-		iurl = 'Images/' + str(item['id']) + '.jpeg'
-		if os.path.isfile(iurl):
-			return iurl
-		else:
-			return 'Resources/nopic.jpg'
-
-	b1 = QtGui.QPushButton()
-	b1.clicked.connect(lambda: itemClicked(item))
-	b1.setFixedSize(100,100)
-	b1.setAutoFillBackground(True)
-	b1.setFocusPolicy(Qt.NoFocus)
-
-	foto = getImageUrl(item)
-	b1.setIcon(QtGui.QIcon(foto))
-	b1.setStyleSheet("border: none;")
-	b1.setIconSize(QSize(100,100))
-	return b1
-
-def makeLabel(item):
-	l1 = QtGui.QLabel(utils.clean(item['name']))
-	l1.setFixedSize(100,100)
-	l1.setWordWrap(True)
-	return l1
-
-################################################################
-#-------------------------ORDERLIJST----------------------------
-################################################################
-
-def itemClicked(item):
-	product = utils.WebshopItem(1,item)
-	if product.Item not in list(map(lambda x: x.Item,data['Artikelen'])):
-		data['Artikelen'].append(product)
-	else:
-		for o in data['Artikelen']:
-			if o.Item is product.Item:
-				o.Aantal = o.Aantal + 1
-				break
-	orderlijst.rebuild()
-
-def emptyOrder():
-	del data['Artikelen'][:]
-	orderlijst.rebuild()
+			if product.Item not in list(map(lambda x: x.Item,self.orderLijst)):
+				self.orderLijst.append(product)
+			else:
+				for o in self.orderLijst:
+					if o.Item is product.Item:
+						o.Aantal = o.Aantal + 1
+						break
+		self.display.rebuild()
 
 main()
