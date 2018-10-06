@@ -27,7 +27,7 @@ class OrderItem(object):
 		return '\unitrow{' + self.Name + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}{}'
 
 	def totaalPrijs(self):
-		return self.Aantal * self.Prijs
+		return self.Aantal * float(self.Prijs)
 
 class PreCustomItem(OrderItem):
 	def __init__(self,aantal,item):
