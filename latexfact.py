@@ -31,7 +31,7 @@ def makeFactuur(data,typeFactuur):
 	latexCode = makeTex(data,typeFactuur)
 	file.write(latexCode)
 	file.close()
-	proc = runpdflatex(filename,True,workingDir)
+	proc = runpdflatex(filename,workingDir)
 	proc.wait()
 
 	if typeFactuur == utils.TypeFactuur.Afdrukvoorbeeld:
@@ -40,8 +40,10 @@ def makeFactuur(data,typeFactuur):
 		openfile(pdffilename,'Facturen/Temp/')
 	else:
 		shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)
+		print("moved file to " + 'Facturen/' + pdffilename)
 		try:
-			shutil.copy('Facturen/' + pdffilename,'/home/chris/Dropbox/B. MX5-Winkel administratie/MX5Winkel' + pdffilename)
+			shutil.copy('Facturen/' + pdffilename,'../Dropbox/B. MX5-Winkel administratie/MX5Winkel' + pdffilename)
+			print("Copied file to Dropbox")
 		except:
 			print('Dropbox directory not found!')
 		openfile(pdffilename,'Facturen/')
@@ -200,8 +202,9 @@ def makeBottomText(bedrijf,betaalwijze):
 	\end{document}"""
 	return bottomText
 
-def runpdflatex(fileName,debug,workingDir):
+def runpdflatex(fileName,workingDir):
 	print(fileName)
+	debug = False
 	if debug:
 		proc =  subprocess.Popen(['pdflatex','-interaction','nonstopmode',fileName],cwd=workingDir)
 		return proc
