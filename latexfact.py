@@ -12,7 +12,7 @@ def startFactuur(data,typeFactuur):
 def makeFactuur(data,typeFactuur):
 	factuurNummer = getFactuurNummer(data['soortFactuur'],typeFactuur)
 	data['FactuurNummer'] = factuurNummer
-	pdfNaam = data['Klant']['Naam'] +' '+ factuurNummer + data['Klant']['Kenteken']
+	pdfNaam = data['Klant']['Naam'] +' '+ factuurNummer + ' ' + data['Klant']['Kenteken']
 	data['bedrijf'] = standardBedrijfInfo()
 	if typeFactuur == utils.TypeFactuur.Kostenraming:
 		data['Omschrijving'] = 'Kostenraming'
