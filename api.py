@@ -3,11 +3,31 @@ import json
 from time import sleep
 import url
 
+def getOrders(aantal=0,silent=False):
+	if aantal == 0:
+		aantal = getOrderCount()
+	print(aantal)
+	lijst = []
+	for offset in range(0,aantal,100):
+		if not silent:
+			print('Order Offset:'+str(offset))
+		Url = url.getOrders(offset=offset)
+		resp = requests.get(Url)
+		checkStatus(resp,time=0)
+		lijst.extend(json.loads(resp.text))
+	return lijst
+
 def getCategories():
 	Url = url.getCategories()
 	resp = requests.get(Url)
 	checkStatus(resp,time=0)
 	return json.loads(resp.text)
+
+def getOrderCount():
+	Url = url.getOrderCount()
+	resp = requests.get(Url)
+	checkStatus(resp,time=0)
+	return json.loads(resp.text)['count']
 
 def getArtikelCount():
 	Url = url.getArticleCount()

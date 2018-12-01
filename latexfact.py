@@ -121,6 +121,11 @@ def makeTopText(klant,factuurnummer, omschrijving,typeFactuur):
 	if klant['Kenteken'] != '':
 		topText += r"""\\
 		\\
+		KM-stand: \hspace{1.1cm} """+klant['km-stand']
+
+	if klant['Kenteken'] != '':
+		topText += r"""\\
+		\\
 		Kenteken: \hspace{1.1cm} """+klant['Kenteken']
 
 	topText += r"""\\

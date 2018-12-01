@@ -16,6 +16,10 @@ def getCategories(version=1,taal='nl_NL',limit=100,format='json'):
 def getArticles(version=1,taal='nl_Nl',limit=100,offset=0,format='json'):
 	return 'https://api.mijnwebwinkel.nl/v'+str(version)+'/articles?'+languageUrl(taal)+formatUrl(format)+'&limit='+str(limit)+'&offset='+str(offset)+tokensUrl()
 
+def getOrders(version=1,taal='nl_Nl',limit=100,offset=0,format='json'):
+	return 'https://api.mijnwebwinkel.nl/v'+str(version)+'/orders?'+languageUrl(taal)+formatUrl(format)+'&limit='+str(limit)+'&start_date=2018-01-01&end_date=2019-01-01&offset='+str(offset)+tokensUrl()
+
+
 def postArticle(version=1,taal='nl_Nl',format='json'):
 	return 'https://api.mijnwebwinkel.nl/v'+str(version)+'/articles?'+languageUrl(taal)+formatUrl(format)+tokensUrl()
 
@@ -44,3 +48,5 @@ def patchArticle(id,use_url_id=False, version=1,taal='nl_Nl',format='json'):
 def getArticleCount(version=1,taal='nl_Nl',format='json'):
 	return 'https://api.mijnwebwinkel.nl/v'+str(version)+'/articles/count?'+languageUrl(taal)+formatUrl(format)+tokensUrl()
 
+def getOrderCount(version=1,taal='nl_NL',format='json'):
+	return 'https://api.mijnwebwinkel.nl/v'+str(version)+'/orders/count?'+languageUrl(taal)+'&start_date=2018-01-01&end_date=2019-01-01'+formatUrl(format)+tokensUrl()
