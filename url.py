@@ -10,6 +10,9 @@ def languageUrl(language):
 	return 'language='+language
 
 ###################################################
+def getStoreDetails(version=1,taal='nl_NL',format='json'):
+	return "https://api.mijnwebwinkel.nl/v"+str(version)+"/store?"+languageUrl(taal)+formatUrl(format)+tokensUrl()
+
 def getCategories(version=1,taal='nl_NL',limit=100,format='json'):
 	return "https://api.mijnwebwinkel.nl/v"+str(version)+"/categories?"+languageUrl(taal)+"&limit="+str(limit)+formatUrl(format)+"&as_tree=true&max_depth=5"+tokensUrl()
 

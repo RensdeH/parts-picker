@@ -3,6 +3,12 @@ import json
 from time import sleep
 import url
 
+def getStoreDetails():
+	Url = url.getStoreDetails()
+	resp = requests.get(Url)
+	checkStatus(resp)
+	return json.loads(resp.text)
+
 def getOrders(aantal=0,silent=False):
 	if aantal == 0:
 		aantal = getOrderCount()
