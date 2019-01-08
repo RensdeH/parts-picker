@@ -40,7 +40,7 @@ class WebshopItem(OrderItem):
 		self.Item = item
 
 class UrenItem(OrderItem):
-	def __init__(self,aantal,omschrijving,prijs = 62.50,tax=21):
+	def __init__(self,aantal,omschrijving,prijs = 65.00,tax=21):
 		super(UrenItem,self).__init__(aantal,omschrijving,prijs,tax)
 
 	def strLatex(self):
