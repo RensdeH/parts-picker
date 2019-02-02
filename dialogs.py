@@ -66,6 +66,18 @@ class UrenDialog(baseDialog):
 		product = utils.UrenItem(dataList[0],dataList[1])
 		return product
 
+	@staticmethod
+	def edit_data(data):
+		dialog = UrenDialog()
+		print(data)
+		dialog.editUren.setValue(data[0])
+		dialog.editOmschrijving.setText(data[1])
+		dataList = dialog.getData()
+		if dataList == None:
+			return None
+		product = utils.UrenItem(dataList[0],dataList[1])
+		return product
+
 class VrijVeldDialog(baseDialog):
 	def __init__(self, parent=None):
 		def setTax(tax):
@@ -118,6 +130,22 @@ class VrijVeldDialog(baseDialog):
 		product = utils.OrderItem(dataList[0],dataList[1],dataList[2],dataList[3])
 		return product
 
+	@staticmethod
+	def edit_data(data):
+		dialog = VrijVeldDialog()
+		print(data)
+		dialog.editAantal.setValue(data[0])
+		dialog.editNaam.setText(data[1])
+		dialog.editPrijs.setValue(data[2])
+		if data[3] == 21:
+			dialog.tax21.toggle()
+		dataList = dialog.getData()
+		if dataList == None:
+			return None
+		product = utils.OrderItem(dataList[0],dataList[1],dataList[2],dataList[3])
+		return product
+
+
 class SearchDialog(baseDialog):
 	def __init__(self, parent=None):
 		def validate(z):
@@ -144,6 +172,12 @@ def vrijVeldDialog():
 
 def zoekDialog():
 	return SearchDialog().getData()
+
+def urenEditDialog(data):
+	return UrenDialog.edit_data(data)
+
+def vrijEditDialog(data):
+	return VrijVeldDialog.edit_data(data)
 
 def controleerJsonLayout(data):
 	layout = QtGui.QFormLayout()

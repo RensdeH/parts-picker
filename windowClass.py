@@ -2,6 +2,7 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import *
 import utils
 from enum import Enum
+import dialogs
 #pointer naar factuur.data voor debuggen
 data = None
 
@@ -86,6 +87,8 @@ class Orderlijst(QtGui.QGridLayout):
 		Count = 4
 		Name = 5
 		Prijs = 6
+		UrenEdit = 7
+		VrijEdit = 8
 
 	def __init__(self,data,parent=None):
 		super(Orderlijst,self).__init__(parent)
@@ -106,6 +109,10 @@ class Orderlijst(QtGui.QGridLayout):
 			self.features.append(self.makeNameLabel)
 		if feature == Orderlijst.Features.Prijs:
 			self.features.append(self.makePrijsLabel)
+		if feature == Orderlijst.Features.UrenEdit:
+			self.features.append(self.makeUrenEditButton)
+		if feature == Orderlijst.Features.VrijEdit:
+			self.features.append(self.makeVrijEditButton)
 
 	def makeAddButton(self,item):
 		addButton = QtGui.QPushButton('+')
@@ -154,6 +161,43 @@ class Orderlijst(QtGui.QGridLayout):
 		prijsLabel.setAlignment(Qt.AlignRight)
 		return prijsLabel
 
+	def makeUrenEditButton(self,item):
+		deleteButton = QtGui.QPushButton("Edit")
+		deleteButton.setFixedSize(40,40)
+		deleteButton.clicked.connect(lambda s, w=item: self.editUrenItem(w))
+		return deleteButton
+
+	def editUrenItem(self,item):
+		data = []
+		data.append(item.Aantal)
+		data.append(item.Name)
+		ret = dialogs.urenEditDialog(data)
+		if ret == None:
+			return
+		self.Data.remove(item)
+		self.Data.append(ret)
+		self.rebuild()
+
+	def makeVrijEditButton(self,item):
+		deleteButton = QtGui.QPushButton("Edit")
+		deleteButton.setFixedSize(40,40)
+		deleteButton.clicked.connect(lambda s, w=item: self.editVrijItem(w))
+		return deleteButton
+
+	def editVrijItem(self,item):
+		data = []
+		data.append(item.Aantal)
+		data.append(item.Name)
+		data.append(item.Prijs)
+		data.append(item.Tax)
+		ret = dialogs.vrijEditDialog(data)
+		if ret == None:
+			return
+		self.Data.remove(item)
+		self.Data.append(ret)
+		self.rebuild()
+
+
 	def rebuild(self):
 		for i in reversed(range(self.count())):
 			notNeeded = self.takeAt(i).widget().setParent(None)
@@ -180,6 +224,7 @@ def vrijVeldLijst(list):
 	lijst.addFeature(Orderlijst.Features.Name)
 	lijst.addFeature(Orderlijst.Features.Prijs)
 	lijst.addFeature(Orderlijst.Features.Delete)
+	lijst.addFeature(Orderlijst.Features.VrijEdit)
 	return lijst
 
 def werkLijst(list):
@@ -188,4 +233,5 @@ def werkLijst(list):
 	lijst.addFeature(Orderlijst.Features.Name)
 	lijst.addFeature(Orderlijst.Features.Delete)
 	lijst.addFeature(Orderlijst.Features.Prijs)
+	lijst.addFeature(Orderlijst.Features.UrenEdit)
 	return lijst
