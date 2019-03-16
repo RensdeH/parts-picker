@@ -59,7 +59,8 @@ def makeTex(data,typeFactuur):
 	omschrijving = data['Omschrijving']
 	betaalwijze = "contant of per pin"
 	if data['soortFactuur'] == utils.SoortFactuur.Reparatie:
-		betaalwijze += " bij afhalen auto"
+		betaalwijze += " bij afhalen auto\\\\\\tab\\tab\\tab\\tab\\tab\\hspace{0.2cm}"
+	betaalwijze += " of vooraf overmaken."
 	if data['soortFactuur'] == utils.SoortFactuur.Verkoop:
 		betaalwijze = "via bankoverschrijving voor afhalen auto"
 	if data['soortFactuur'] == utils.SoortFactuur.Inkoop:
