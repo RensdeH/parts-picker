@@ -1,8 +1,11 @@
 
 \documentclass{invoice}
 \usepackage{setspace}
+\usepackage[utf8]{inputenc}
 %\usepackage[yyyymmdd]{datetime}
+\usepackage{textcomp}
 \usepackage{graphicx}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
 \renewcommand{\arraystretch}{0.7}
 \def \tab {\hspace*{3ex}}
 \begin{document}

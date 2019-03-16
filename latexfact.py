@@ -3,6 +3,7 @@ import utils
 import datetime as dt
 import os
 import shutil
+from codecs import open
 
 def startFactuur(data,typeFactuur):
 	if typeFactuur != utils.TypeFactuur.Afdrukvoorbeeld:
@@ -27,7 +28,7 @@ def makeFactuur(data,typeFactuur):
 	filename = pdfNaam + '.tex'
 	pdffilename = pdfNaam + '.pdf'
 
-	file = open(workingDir + filename,'w')
+	file = open(workingDir + filename,'w',encoding='utf8')
 	latexCode = makeTex(data,typeFactuur)
 	file.write(latexCode)
 	file.close()
