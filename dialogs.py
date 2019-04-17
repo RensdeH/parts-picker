@@ -139,6 +139,7 @@ class VrijVeldDialog(baseDialog):
 		dialog.editPrijs.setValue(data[2])
 		if data[3] == 21:
 			dialog.tax21.toggle()
+			dialog.tax = 21
 		dataList = dialog.getData()
 		if dataList == None:
 			return None
