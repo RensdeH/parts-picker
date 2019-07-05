@@ -24,7 +24,7 @@ class OrderItem(object):
 		self.Item = None
 
 	def strLatex(self):
-		return '\unitrow{' + self.Name + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}{}'
+		return '\unitrow{' + replaceSpecialChars(self.Name) + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}{}'
 
 	def totaalPrijs(self):
 		return self.Aantal * float(self.Prijs)
@@ -44,7 +44,20 @@ class UrenItem(OrderItem):
 		super(UrenItem,self).__init__(aantal,omschrijving,prijs,tax)
 
 	def strLatex(self):
-		return r"""\hourrow{Werkplaatstarief """ + self.Name + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}'
+		return r"""\hourrow{Werkplaatstarief """ + replaceSpecialChars(self.Name) + '}{' + str(self.Aantal) + '}{' + str(self.Prijs) + '}'
+
+def replaceSpecialChars(input):
+	input = input.replace("\\","\\textbackslash ");
+	input = input.replace("^","\\textasciicircum ");
+	input = input.replace("~","\\textasciitilde ");
+	input = input.replace("}","\\}");
+	input = input.replace("{","\\{");
+	input = input.replace("_","\\_");
+	input = input.replace("#","\\#");
+	input = input.replace("$","\\$");
+	input = input.replace("%","\\%");
+	input = input.replace("&","\\&");
+	return input
 
 def makePreCustomItem(aantal,item):
 	if 'Naam' in item and 'Prijs' in item and 'tax' in item:

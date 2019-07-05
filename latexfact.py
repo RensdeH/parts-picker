@@ -99,36 +99,36 @@ def makeTopText(klant,factuurnummer, omschrijving,typeFactuur):
 	datumData = dt.date.today()
 	datum = datumData.strftime("%d-%m-%Y")
 	topText = r"""\begin{tabular}[t]{l@{}}
-    	\tab """+klant['Naam']+r""" \\
-    	\tab """+klant['Straat']+r"""\\
-    	\tab """+klant['Postcode']+r""" """+klant['Plaats']+r"""\\
+    	\tab """+utils.replaceSpecialChars(klant['Naam'])+r""" \\
+    	\tab """+utils.replaceSpecialChars(klant['Straat'])+r"""\\
+    	\tab """+klant['Postcode']+r""" """+utils.replaceSpecialChars(klant['Plaats'])+r"""\\
     	[0.5cm]
-    	\tab Telefoon: """+klant['Telefoon']+r"""\\
-    	\tab Email: """+klant['email']+r"""\\
+    	\tab Telefoon: """+utils.replaceSpecialChars(klant['Telefoon'])+r"""\\
+    	\tab Email: """+utils.replaceSpecialChars(klant['email'])+r"""\\
 		\end{tabular}
 
 	\hfill
 
 	\begin{tabular}[t]{l@{}}
-     	"""+omschrijving
+     	"""+utils.replaceSpecialChars(omschrijving)
 
 	if typeFactuur == utils.TypeFactuur.Kostenraming:
 		topText += r"""\\
-		Datum:\hspace{1.5cm} """+datum
+		Datum:\hspace{1.5cm} """+utils.replaceSpecialChars(datum)
 	else:
 		topText += r"""\\
-		Factuurdatum:\hspace{0.3cm} """+datum+r""" \\
-		Factuurnummer: """+factuurnummer
+		Factuurdatum:\hspace{0.3cm} """+utils.replaceSpecialChars(datum)+r""" \\
+		Factuurnummer: """+utils.replaceSpecialChars(factuurnummer)
 
 	if klant['Kenteken'] != '':
 		topText += r"""\\
 		\\
-		KM-stand: \hspace{1.1cm} """+klant['km-stand']
+		KM-stand: \hspace{1.1cm} """+utils.replaceSpecialChars(klant['km-stand'])
 
 	if klant['Kenteken'] != '':
 		topText += r"""\\
 		\\
-		Kenteken: \hspace{1.1cm} """+klant['Kenteken']
+		Kenteken: \hspace{1.1cm} """+utils.replaceSpecialChars(klant['Kenteken'])
 
 	topText += r"""\\
 	 \end{tabular}
@@ -170,9 +170,9 @@ def makeOrderText(order,werk,auto,custom, data):
 		else:
 			feetype = 'Auto'
 		orderText += r"""
-		\feetype{"""+feetype+'}'
+		\feetype{"""+utils.replaceSpecialChars(feetype)+'}'
 		autoOmschrijving = getCarDes(auto)
-		orderText += r"""\unitrow{"""+getCarDes(auto)+'}{'+str(1)+'}{'+auto['Prijs']+'}{}'
+		orderText += r"""\unitrow{"""+utils.replaceSpecialChars(getCarDes(auto))+'}{'+str(1)+'}{'+utils.replaceSpecialChars(auto['Prijs'])+'}{}'
 		uitbtwgeen += float(auto['Prijs'])
 
 	btwhoog = (uitbtwhoog/1.21)*0.21
