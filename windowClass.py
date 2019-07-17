@@ -143,6 +143,7 @@ class Orderlijst(QtGui.QGridLayout):
 		return deleteButton
 
 	def deleteItem(self,item):
+		item.Aantal = 1
 		self.Data.remove(item)
 		self.rebuild()
 

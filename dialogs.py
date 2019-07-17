@@ -136,7 +136,7 @@ class VrijVeldDialog(baseDialog):
 		print(data)
 		dialog.editAantal.setValue(data[0])
 		dialog.editNaam.setText(data[1])
-		dialog.editPrijs.setValue(data[2])
+		dialog.editPrijs.setValue(float(data[2]))
 		if data[3] == 21:
 			dialog.tax21.toggle()
 			dialog.tax = 21
