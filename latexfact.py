@@ -172,7 +172,7 @@ def makeOrderText(order,werk,auto,custom, data):
 		orderText += r"""
 		\feetype{"""+utils.replaceSpecialChars(feetype)+'}'
 		autoOmschrijving = getCarDes(auto)
-		orderText += r"""\unitrow{"""+utils.replaceSpecialChars(getCarDes(auto))+'}{'+str(1)+'}{'+utils.replaceSpecialChars(auto['Prijs'])+'}{}'
+		orderText += r"""\unitrow{"""+getCarDes(auto)+'}{'+str(1)+'}{'+utils.replaceSpecialChars(auto['Prijs'])+'}{}'
 		uitbtwgeen += float(auto['Prijs'])
 
 	btwhoog = (uitbtwhoog/1.21)*0.21
@@ -184,14 +184,14 @@ def makeOrderText(order,werk,auto,custom, data):
 
 def getCarDes(auto):
 	s = ''
-	s += "Model: " + str(auto['Model']) + r"""\\"""
-	s += "Kenteken: " + str(auto['Kenteken']) +r"""\\"""
-	s += "Bouwjaar: " + str(auto['Bouwjaar']) +r"""\\"""
-	s += "Km-stand: " + str(auto['km-stand']) +r"""\\"""
-	s += "Meldcode: " + str(auto['Meldcode']) +r"""\\"""
+	s += "Model: " + utils.replaceSpecialChars(str(auto['Model'])) + r"""\\"""
+	s += "Kenteken: " + utils.replaceSpecialChars(str(auto['Kenteken'])) +r"""\\"""
+	s += "Bouwjaar: " + utils.replaceSpecialChars(str(auto['Bouwjaar'])) +r"""\\"""
+	s += "Km-stand: " + utils.replaceSpecialChars(str(auto['km-stand'])) +r"""\\"""
+	s += "Meldcode: " + utils.replaceSpecialChars(str(auto['Meldcode'])) +r"""\\"""
 	if str(auto['APK']) != '':
-		s += "APK " + str(auto['APK']) +r"""\\"""
-	s += auto['extra info']
+		s += "APK " + utils.replaceSpecialChars(str(auto['APK'])) +r"""\\"""
+	s += utils.replaceSpecialChars(auto['extra info'])
 	return s
 
 def makeBottomText(bedrijf,betaalwijze):
