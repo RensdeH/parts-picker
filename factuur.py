@@ -360,6 +360,10 @@ def defineTabs(lijst):
 		cids = {}
 		for a in lijst:
 			for c in a.Item['categories']:
+				if str(c['category_id']) == 5118110:
+					continue
+				if str(c['category_id']) == 5118120:
+					continue
 				cids.setdefault(str(c['category_id']),[]).append(a)
 		return cids
 
