@@ -43,7 +43,7 @@ def makeFactuur(data,typeFactuur):
 		shutil.move(workingDir + pdffilename,'Facturen/' + pdffilename)
 		print("moved file to " + 'Facturen/' + pdffilename)
 		try:
-			shutil.copy('Facturen/' + pdffilename,'../Dropbox/B. MX5-Winkel administratie/MX5Winkel/' + pdffilename)
+			shutil.copy('Facturen/' + pdffilename,'/home/chris/Dropbox/B. MX5-Winkel administratie/MX5Winkel/' + pdffilename)
 			print("Copied file to Dropbox")
 		except:
 			print('Dropbox directory not found!')
