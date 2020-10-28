@@ -307,8 +307,16 @@ def searchTab():
 		zoekLijst = Cids[str(activeData['CatId'])]
 
 	results = []
+
+	def inItemDescription(product, text):
+		descr = product.Item.get('description')
+		if descr == None:
+			return False
+		else:
+			return text in descr.lower()
+
 	for product in zoekLijst:
-		if text in product.Item['name'].lower() or text in product.Item['description'].lower():
+		if text in product.Item['name'].lower() or inItemDescription(product, text):
 			results.append(product)
 
 	newScroll = makeTab(activeData['CatId'])
@@ -360,10 +368,11 @@ def defineTabs(lijst):
 		cids = {}
 		for a in lijst:
 			for c in a.Item['categories']:
-				if str(c['category_id']) == 5118110:
+				if str(c['category_id']) == '5118110':
 					continue
-				if str(c['category_id']) == 5118120:
+				if str(c['category_id']) == '5118120':
 					continue
+
 				cids.setdefault(str(c['category_id']),[]).append(a)
 		return cids
 
