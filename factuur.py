@@ -333,7 +333,7 @@ def searchTab():
 	l1.setFixedSize(100,100)
 	l1.setWordWrap(True)
 
-	grid = ProductGrid(results,orderlijst,data['Artikelen'],5,searchButton = (b1,l1))
+	grid = ProductGrid(results,orderlijst,data['Artikelen'],4,searchButton = (b1,l1))
 	newScroll.widget().setLayout(grid)
 
 	index = activeTab.insertTab(activeData['Position'],newScroll,'Zoek:'+str(text))
@@ -346,7 +346,7 @@ def searchTab():
 
 def previousTab(tabData):
 	scroll = makeTab(tabData['CatId'])
-	grid = ProductGrid(Cids[str(tabData['CatId'])],orderlijst,data['Artikelen'],5)
+	grid = ProductGrid(Cids[str(tabData['CatId'])],orderlijst,data['Artikelen'],4)
 	scroll.widget().setLayout(grid)
 
 	sluitZoeken(scroll,tabData['Tab'],tabData['Position'],catNames[str(tabData['CatId'])],tabData['Color'])
@@ -371,6 +371,8 @@ def defineTabs(lijst):
 				if str(c['category_id']) == '5118110':
 					continue
 				if str(c['category_id']) == '5118120':
+					continue
+				if str(c['category_id']) == '5672315':
 					continue
 
 				cids.setdefault(str(c['category_id']),[]).append(a)
@@ -413,7 +415,7 @@ def fillTabs(cids):
 	if not os.path.exists('Images/'):
 		os.makedirs('Images/')
 	for t in tablist:
-		grid = ProductGrid(cids[str(t[0])],orderlijst,data['Artikelen'],5)
+		grid = ProductGrid(cids[str(t[0])],orderlijst,data['Artikelen'],4)
 		t[1].widget().setLayout(grid)
 	colorTabs(tabs,QtGui.QColor(0,0,0),0)
 
