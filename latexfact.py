@@ -190,7 +190,7 @@ def getCarDes(auto):
 	s += "Km-stand: " + utils.replaceSpecialChars(str(auto['km-stand'])) +r"""\\"""
 	s += "Meldcode: " + utils.replaceSpecialChars(str(auto['Meldcode'])) +r"""\\"""
 	if str(auto['APK']) != '':
-		s += "APK " + utils.replaceSpecialChars(str(auto['APK'])) +r"""\\"""
+		s += "APK: " + utils.replaceSpecialChars(str(auto['APK'])) +r"""\\"""
 	s += utils.replaceSpecialChars(auto['extra info'])
 	return s
 
