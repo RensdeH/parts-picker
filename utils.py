@@ -137,7 +137,7 @@ def makeMockAuto():
 
 def makeCompany():
 	data = OrderedDict()
-	data['Straat'] = 'Energieweg 9-11'
+	data['Straat'] = 'Energieweg 11'
 	data['Plaats'] = 'Meerkerk'
 	data['Land'] = 'Nederland'
 	data['Postcode'] = '4231DJ'
