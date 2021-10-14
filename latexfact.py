@@ -104,8 +104,13 @@ def makeTopText(klant,factuurnummer, omschrijving,typeFactuur):
     	\tab """+klant['Postcode']+r""" """+utils.replaceSpecialChars(klant['Plaats'])+r"""\\
     	[0.5cm]
     	\tab Telefoon: """+utils.replaceSpecialChars(klant['Telefoon'])+r"""\\
-    	\tab Email: """+utils.replaceSpecialChars(klant['email'])+r"""\\
-		\end{tabular}
+    	\tab Email: """+utils.replaceSpecialChars(klant['email'])
+	if klant["BTW"] != '':
+		topText+=r"""\\
+		\tab BTW nr: """+utils.replaceSpecialChars(klant['BTW'])
+
+	topText+=r"""\\
+	\end{tabular}
 
 	\hfill
 

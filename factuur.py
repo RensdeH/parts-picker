@@ -379,6 +379,7 @@ def defineTabs(lijst):
 		return cids
 
 	cids = listCatIds(lijst)
+	print(cids.keys())
 	categories = api.getCategories()
 	for c in categories:
 		loopCats(c,cids.keys(),'',tabs,lijst)
